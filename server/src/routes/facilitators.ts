@@ -51,6 +51,67 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// POST /facilitators/patients — generate a new patient code and create the record
+router.post('/patients', requireFacilitator, async (req: Request, res: Response): Promise<void> => {
+  const display_name = (req.body.display_name || '').toString().trim() || 'مريض جديد';
+
+  try {
+    // Generate a unique code: one uppercase letter + 6 digits (e.g. A123456)
+    let code = '';
+    let attempts = 0;
+    while (attempts < 20) {
+      const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A–Z
+      const digits = String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0');
+      code = letter + digits;
+      const existing = await pool.query('SELECT id FROM patients WHERE code = $1', [code]);
+      if (existing.rows.length === 0) break;
+      attempts++;
+    }
+    if (!code) {
+      res.status(500).json({ error: 'Could not generate a unique code' });
+      return;
+    }
+
+    const result = await pool.query(
+      `INSERT INTO patients (code, display_name, substances)
+       VALUES ($1, $2, $3) RETURNING id, code, display_name, created_at`,
+      [code, display_name, []]
+    );
+
+    res.status(201).json({ patient: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// PATCH /facilitators/patients/:id — update patient name and/or substances
+router.patch('/patients/:id', requireFacilitator, async (req: Request, res: Response): Promise<void> => {
+  const patientId = parseInt(req.params.id);
+  const display_name = (req.body.display_name || '').toString().trim();
+  const substances: string[] = Array.isArray(req.body.substances) ? req.body.substances : [];
+
+  if (!display_name) {
+    res.status(400).json({ error: 'Name is required' });
+    return;
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE patients SET display_name = $1, substances = $2 WHERE id = $3 RETURNING *`,
+      [display_name, substances, patientId]
+    );
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Patient not found' });
+      return;
+    }
+    res.json({ patient: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // GET /facilitators/patients — all patients with summary stats
 router.get('/patients', requireFacilitator, async (_req: Request, res: Response): Promise<void> => {
   try {

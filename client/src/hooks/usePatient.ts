@@ -25,6 +25,7 @@ export interface Period {
   end_year: number | null;
   duration_months: number | null;
   note: string | null;
+  substances: string[];
   sort_order: number;
   created_at: string;
   events: Event[];

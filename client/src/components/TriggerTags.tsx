@@ -2,7 +2,7 @@ interface TriggerTagsProps {
   options: readonly string[];
   selected: string[];
   onChange: (selected: string[]) => void;
-  colorScheme?: 'green' | 'amber' | 'blue';
+  colorScheme?: 'green' | 'amber' | 'blue' | 'red';
 }
 
 export default function TriggerTags({
@@ -14,6 +14,7 @@ export default function TriggerTags({
   const selectedClass =
     colorScheme === 'green' ? 'pill-selected-green' :
     colorScheme === 'amber' ? 'pill-selected-amber' :
+    colorScheme === 'red'   ? 'pill-selected-red' :
     'pill-selected-blue';
 
   const toggle = (item: string) => {

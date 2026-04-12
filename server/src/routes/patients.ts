@@ -6,7 +6,7 @@ import { sanitiseText, sanitiseArray } from '../middleware/validate';
 
 const router = Router();
 
-// POST /patients/login — create or retrieve patient
+// POST /patients/login — retrieve patient by code and update their display name
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   const code = sanitiseText(req.body.code);
   const display_name = sanitiseText(req.body.display_name || '');
@@ -15,32 +15,26 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     res.status(400).json({ error: 'الكود مطلوب' });
     return;
   }
+  if (!display_name) {
+    res.status(400).json({ error: 'الاسم مطلوب' });
+    return;
+  }
 
   try {
     let patient;
     const existing = await pool.query('SELECT * FROM patients WHERE code = $1', [code]);
 
-    if (existing.rows.length > 0) {
-      patient = existing.rows[0];
-      // Update display_name if provided and different
-      if (display_name && display_name !== patient.display_name) {
-        const updated = await pool.query(
-          'UPDATE patients SET display_name = $1 WHERE id = $2 RETURNING *',
-          [display_name, patient.id]
-        );
-        patient = updated.rows[0];
-      }
-    } else {
-      if (!display_name) {
-        res.status(404).json({ error: 'لم يتم العثور على بيانات بهذا الكود' });
-        return;
-      }
-      const created = await pool.query(
-        'INSERT INTO patients (code, display_name, substances) VALUES ($1, $2, $3) RETURNING *',
-        [code, display_name, []]
-      );
-      patient = created.rows[0];
+    if (existing.rows.length === 0) {
+      res.status(404).json({ error: 'الكود غير موجود — تأكد من الكود مع المعالج' });
+      return;
     }
+
+    // Update display_name with whatever the patient typed
+    const updated = await pool.query(
+      'UPDATE patients SET display_name = $1 WHERE id = $2 RETURNING *',
+      [display_name, existing.rows[0].id]
+    );
+    patient = updated.rows[0];
 
     const token = jwt.sign(
       { patient_id: patient.id, code: patient.code, role: 'patient' },

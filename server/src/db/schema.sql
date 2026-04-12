@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS periods (
   end_year         SMALLINT,
   duration_months  INTEGER,
   note             TEXT,
+  substances       TEXT[] DEFAULT '{}',
   sort_order       INTEGER,
   created_at       TIMESTAMP DEFAULT NOW()
 );

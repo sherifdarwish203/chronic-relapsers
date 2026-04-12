@@ -58,7 +58,18 @@ export default function PeriodCard({ period, onDelete }: PeriodCardProps) {
         </blockquote>
       )}
 
-      {/* Row 4: event badge (relapses only) */}
+      {/* Row 4: substances (relapse / reduced) */}
+      {(period.type === 'relapse' || period.type === 'reduced') && period.substances?.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-2">
+          {period.substances.map((s) => (
+            <span key={s} className="px-2 py-0.5 text-xs rounded-full border border-amber-300 bg-amber-50 text-amber-800">
+              {s}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Row 5: event badge (relapses only) */}
       {period.type === 'relapse' && (
         <div className="mb-3">
           {period.events.length > 0 ? (

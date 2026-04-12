@@ -4,7 +4,8 @@ import api from '../api/client';
 import { usePatient, Period } from '../hooks/usePatient';
 import PeriodCard from '../components/PeriodCard';
 import Toast from '../components/Toast';
-import { ARABIC_MONTHS } from '../constants/presets';
+import { ARABIC_MONTHS, SUBSTANCES } from '../constants/presets';
+import TriggerTags from '../components/TriggerTags';
 import { validateDates, getYearOptions } from '../utils/dates';
 
 interface ToastState { message: string; type: 'success' | 'error' }
@@ -41,6 +42,7 @@ export default function Timeline() {
   const [endMonth, setEndMonth] = useState('');
   const [endYear, setEndYear] = useState('');
   const [note, setNote] = useState('');
+  const [substances, setSubstances] = useState<string[]>([]);
   const [dateError, setDateError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -61,6 +63,7 @@ export default function Timeline() {
     setStartMonth(''); setStartYear('');
     setEndMonth(''); setEndYear('');
     setNote('');
+    setSubstances([]);
     setDateError(null);
     setShowForm(false);
   };
@@ -76,6 +79,7 @@ export default function Timeline() {
         start_month: parseInt(startMonth),
         start_year: parseInt(startYear),
         note: note || undefined,
+        substances: (type === 'relapse' || type === 'reduced') ? substances : [],
       };
       if (endMonth && endYear) {
         payload.end_month = parseInt(endMonth);
@@ -115,7 +119,7 @@ export default function Timeline() {
         {/* Header */}
         <div className="flex items-center mb-2">
           <button onClick={() => navigate('/start')} className="text-gray-500 hover:text-gray-700 ml-3">
-            <svg className="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -228,6 +232,21 @@ export default function Timeline() {
                 <p className="text-[12px] text-error mt-1">{dateError}</p>
               )}
             </div>
+
+            {/* Substances — only for relapse / reduced */}
+            {(type === 'relapse' || type === 'reduced') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  المادة المستخدمة في هذه الفترة
+                </label>
+                <TriggerTags
+                  options={SUBSTANCES}
+                  selected={substances}
+                  onChange={setSubstances}
+                  colorScheme="amber"
+                />
+              </div>
+            )}
 
             {/* Note */}
             <div>

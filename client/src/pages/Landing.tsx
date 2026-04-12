@@ -38,7 +38,7 @@ export default function Landing() {
               <p className="text-base font-bold text-gray-800">أنا مريض</p>
               <p className="text-sm text-gray-500 mt-0.5">ابدأ تسجيل رحلتي</p>
             </div>
-            <svg className="w-5 h-5 text-gray-400 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -52,7 +52,7 @@ export default function Landing() {
               <p className="text-base font-bold text-gray-800">معالج / طبيب</p>
               <p className="text-sm text-gray-500 mt-0.5">لوحة تحكم المعالج</p>
             </div>
-            <svg className="w-5 h-5 text-gray-400 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>

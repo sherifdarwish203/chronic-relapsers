@@ -2,11 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { usePatientAuth } from '../hooks/useAuth';
-import TriggerTags from '../components/TriggerTags';
 import Toast from '../components/Toast';
-import { SUBSTANCES } from '../constants/presets';
 
-interface Toast { message: string; type: 'success' | 'error' }
+interface ToastState { message: string; type: 'success' | 'error' }
 
 export default function PatientStart() {
   const navigate = useNavigate();
@@ -14,56 +12,29 @@ export default function PatientStart() {
 
   const [displayName, setDisplayName] = useState('');
   const [code, setCode] = useState('');
-  const [substances, setSubstances] = useState<string[]>([]);
-  const [toast, setToast] = useState<Toast | null>(null);
+  const [toast, setToast] = useState<ToastState | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-  };
-
-  const handleStart = async () => {
+  const handleEnter = async () => {
     if (!displayName.trim() || !code.trim()) return;
     setLoading(true);
     try {
       const res = await api.post('/patients/login', {
-        code: code.trim(),
+        code: code.trim().toUpperCase(),
         display_name: displayName.trim(),
-      });
-      login(res.data.token);
-      // Update substances if selected
-      if (substances.length > 0) {
-        await api.patch('/patients/me', { substances });
-      }
-      showToast('أهلاً بك!', 'success');
-      setTimeout(() => navigate('/timeline'), 800);
-    } catch {
-      showToast('حصل خطأ — حاول تاني', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLoad = async () => {
-    if (!code.trim()) return;
-    setLoading(true);
-    try {
-      const res = await api.post('/patients/login', {
-        code: code.trim(),
-        display_name: '',
       });
       login(res.data.token);
       navigate('/timeline');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error;
-      if (msg === 'لم يتم العثور على بيانات بهذا الكود') {
-        showToast('لم يتم العثور على بيانات بهذا الكود', 'error');
-      } else {
-        showToast('حصل خطأ — حاول تاني', 'error');
-      }
+      setToast({ message: msg || 'حصل خطأ — حاول تاني', type: 'error' });
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleEnter();
   };
 
   return (
@@ -72,11 +43,11 @@ export default function PatientStart() {
         <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />
       )}
 
-      <div className="w-full max-w-[520px]">
+      <div className="w-full max-w-[480px]">
         {/* Header */}
         <div className="flex items-center mb-6">
           <button onClick={() => navigate('/')} className="text-gray-500 hover:text-gray-700 ml-3">
-            <svg className="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -95,17 +66,19 @@ export default function PatientStart() {
 
         {/* Form card */}
         <div className="card space-y-4">
-          {/* Display name */}
+          {/* First name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              اسمك أو اسم تُفضّله
+              اسمك الأول
             </label>
             <input
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="مثلاً: أحمد..."
+              onKeyDown={handleKeyDown}
+              placeholder="مثلاً: أحمد"
               className="input-base"
+              autoFocus
             />
           </div>
 
@@ -118,45 +91,24 @@ export default function PatientStart() {
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="مثلاً: A001..."
-              className="input-base"
+              onKeyDown={handleKeyDown}
+              placeholder="مثلاً: A123456"
+              className="input-base font-mono tracking-widest"
+              maxLength={7}
             />
             <p className="text-[11px] text-gray-400 mt-1">
-              ده الكود اللي هتستخدمه للرجوع لبياناتك
+              الكود موجود على الورقة اللي اديكها المعالج
             </p>
           </div>
-
-          {/* Substances */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              المادة أو المواد المعنية
-            </label>
-            <TriggerTags
-              options={SUBSTANCES}
-              selected={substances}
-              onChange={setSubstances}
-              colorScheme="green"
-            />
-          </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="mt-4 space-y-3">
-          <button
-            onClick={handleLoad}
-            disabled={!code.trim() || loading}
-            className="btn-secondary w-full"
-          >
-            تحميل بيانات سابقة
-          </button>
-          <button
-            onClick={handleStart}
-            disabled={!displayName.trim() || !code.trim() || loading}
-            className="btn-primary w-full"
-          >
-            {loading ? 'جاري التحميل...' : 'نبدأ ←'}
-          </button>
-        </div>
+        <button
+          onClick={handleEnter}
+          disabled={!displayName.trim() || !code.trim() || loading}
+          className="btn-primary w-full mt-4"
+        >
+          {loading ? 'جاري التحميل...' : 'دخول ←'}
+        </button>
       </div>
     </div>
   );

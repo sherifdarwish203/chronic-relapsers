@@ -10,6 +10,7 @@ router.post('/', requirePatient, async (req: Request, res: Response): Promise<vo
   const patientId = req.patient!.patient_id;
   const { type, start_month, start_year, end_month, end_year } = req.body;
   const note = sanitiseText(req.body.note);
+  const substances: string[] = Array.isArray(req.body.substances) ? req.body.substances : [];
 
   // Validate type
   const validTypes = ['abstinent', 'relapse', 'reduced'];
@@ -36,10 +37,10 @@ router.post('/', requirePatient, async (req: Request, res: Response): Promise<vo
     const sort_order = maxOrder.rows[0].max_order + 1;
 
     const result = await pool.query(
-      `INSERT INTO periods (patient_id, type, start_month, start_year, end_month, end_year, duration_months, note, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO periods (patient_id, type, start_month, start_year, end_month, end_year, duration_months, note, substances, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [patientId, type, start_month, start_year, end_month || null, end_year || null, duration_months, note || null, sort_order]
+      [patientId, type, start_month, start_year, end_month || null, end_year || null, duration_months, note || null, substances, sort_order]
     );
 
     res.status(201).json({ period: { ...result.rows[0], events: [] } });
@@ -71,6 +72,9 @@ router.patch('/:id', requirePatient, async (req: Request, res: Response): Promis
   const end_month = req.body.end_month !== undefined ? req.body.end_month : current.end_month;
   const end_year = req.body.end_year !== undefined ? req.body.end_year : current.end_year;
   const note = req.body.note !== undefined ? sanitiseText(req.body.note) : current.note;
+  const substances: string[] = req.body.substances !== undefined
+    ? (Array.isArray(req.body.substances) ? req.body.substances : [])
+    : current.substances;
 
   const dateError = validatePeriodDates({ start_month, start_year, end_month, end_year });
   if (dateError) {
@@ -83,10 +87,10 @@ router.patch('/:id', requirePatient, async (req: Request, res: Response): Promis
   try {
     const result = await pool.query(
       `UPDATE periods SET type=$1, start_month=$2, start_year=$3, end_month=$4, end_year=$5,
-       duration_months=$6, note=$7
-       WHERE id=$8 AND patient_id=$9
+       duration_months=$6, note=$7, substances=$8
+       WHERE id=$9 AND patient_id=$10
        RETURNING *`,
-      [type, start_month, start_year, end_month || null, end_year || null, duration_months, note, periodId, patientId]
+      [type, start_month, start_year, end_month || null, end_year || null, duration_months, note, substances, periodId, patientId]
     );
 
     const events = await pool.query('SELECT * FROM events WHERE period_id = $1', [periodId]);
