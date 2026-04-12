@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ── */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  background-color: #F5F5F5;
+  direction: rtl;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Input base style ── */
+.input-base {
+  @apply w-full h-[42px] px-3 border border-[#D1D5DB] rounded-lg text-right text-sm outline-none
+         focus:border-primary focus:ring-1 focus:ring-primary bg-white transition;
+}
+
+.input-error {
+  @apply border-error focus:border-error focus:ring-error;
+}
+
+/* ── Card ── */
+.card {
+  @apply bg-white border border-[#E5E5E5] rounded-xl p-4;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  @apply bg-primary text-white font-medium rounded-lg px-4 py-2.5 text-sm
+         hover:bg-green-700 active:bg-green-800 transition disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply bg-white text-gray-700 font-medium rounded-lg px-4 py-2.5 text-sm border border-gray-300
+         hover:bg-gray-50 active:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed;
+}
+
+.btn-danger {
+  @apply bg-red-50 text-red-600 font-medium rounded-lg px-3 py-2 text-xs border border-red-200
+         hover:bg-red-100 transition;
+}
+
+/* ── Pill tag ── */
+.pill {
+  @apply inline-flex items-center px-3 py-1.5 rounded-full text-sm border cursor-pointer
+         transition select-none;
+}
+
+.pill-default {
+  @apply border-gray-300 text-gray-500 bg-white hover:border-gray-400;
+}
+
+.pill-selected-green {
+  @apply border-primary bg-[#DCFCE7] text-green-700 font-medium;
+}
+
+.pill-selected-amber {
+  @apply border-amber-400 bg-[#FFFBEB] text-amber-700 font-medium;
+}
+
+.pill-selected-blue {
+  @apply border-blue-400 bg-blue-50 text-blue-700 font-medium;
+}
+
+/* ── Print ── */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    direction: rtl;
+  }
+  .print-full {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .card {
+    border: 1px solid #ccc !important;
+    break-inside: avoid;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+}
