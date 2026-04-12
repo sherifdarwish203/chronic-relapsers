@@ -50,18 +50,23 @@ Vite proxies `/api/*` → `http://localhost:3000` in dev. The Axios client in `c
 
 ### Authentication
 Two roles, separate localStorage keys:
-- **Patient**: `patient_token` — JWT `{ patient_id, code, role:"patient" }`, 30d expiry. No password — patients authenticate by code only (create-or-retrieve on `POST /patients/login`).
+- **Patient**: `patient_token` — JWT `{ patient_id, code, role:"patient" }`, 30d expiry. Patients authenticate with code + first name; the code must be pre-created by a facilitator — patients cannot self-register.
 - **Facilitator**: `facilitator_token` — JWT `{ facilitator_id, role:"facilitator" }`, 8h expiry. bcrypt password.
 
 Route guards: `PatientGuard` (redirects to `/start`) and `FacilitatorGuard` (redirects to `/dashboard/login`) in `client/src/App.tsx`.
 
 Server middleware: `requirePatient` / `requireFacilitator` in `server/src/middleware/auth.ts`.
 
+### Patient Code Generation
+Facilitators create patients via `POST /api/v1/facilitators/patients`. The server generates a unique code: one uppercase letter + 6 digits (e.g. `K482951`). The facilitator gives the code to the patient on paper. `POST /patients/login` will 404 if the code doesn't exist — there is no patient self-creation path.
+
 ### Data Model
 ```
 patients → periods (1:many) → events (1:many per relapse period)
 ```
 - `periods.type`: `'abstinent' | 'relapse' | 'reduced'`
+- `periods.substances`: `TEXT[]` — which substances were involved; only meaningful for `relapse` and `reduced` periods, empty array for `abstinent`
+- `patients.substances`: `TEXT[]` — overall substance profile for the patient (set by facilitator via Edit modal)
 - `events.classification`: `'i'` (internal) | `'x'` (external) | `'b'` (both)
 - `events.saw_it_coming`: `'y'` | `'p'` (partial) | `'n'`
 - `duration_months` is calculated server-side; `end_month/end_year` are NULL for ongoing periods
@@ -84,18 +89,20 @@ patients → periods (1:many) → events (1:many per relapse period)
 
 ### Backend Routes
 ```
-POST   /api/v1/patients/login          (rate-limited: 10/min)
+POST   /api/v1/patients/login                    (rate-limited: 10/min; code must exist)
 GET    /api/v1/patients/me
 PATCH  /api/v1/patients/me
-POST   /api/v1/periods
-PATCH  /api/v1/periods/:id
+POST   /api/v1/periods                           (accepts substances[])
+PATCH  /api/v1/periods/:id                       (accepts substances[])
 DELETE /api/v1/periods/:id
 POST   /api/v1/periods/:period_id/events
 DELETE /api/v1/events/:id
 POST   /api/v1/facilitators/login
+POST   /api/v1/facilitators/patients             (generates code + creates patient record)
 GET    /api/v1/facilitators/patients
+PATCH  /api/v1/facilitators/patients/:id         (update name + substances)
 GET    /api/v1/facilitators/patients/:id
-GET    /api/v1/facilitators/analytics
+GET    /api/v1/facilitators/aggregate
 GET    /api/v1/facilitators/export/csv
 GET    /api/v1/facilitators/patients/:id/pdf
 ```
@@ -107,7 +114,9 @@ GET    /api/v1/facilitators/patients/:id/pdf
 - Never use `@apply` with Tailwind utilities — use plain CSS properties in `index.css` instead
 - Custom colours for non-Tailwind contexts are hardcoded as hex: primary green `#16A34A`, error red `#DC2626`, amber `#FCD34D`/`#B45309`
 - All CSS classes (`.btn-primary`, `.btn-secondary`, `.btn-danger`, `.pill`, `.pill-selected-*`, `.card`, `.input-base`) are defined in `client/src/index.css`
-- UI is RTL (`direction: rtl` on body); Arabic fonts: Cairo + Tajawal loaded from Google Fonts in `index.html`
+- Available pill colour schemes in `TriggerTags`: `green | amber | blue | red`
+- UI is RTL (`direction: rtl` on body); back-button chevrons must NOT use `rotate-180` — the SVG path already points right which is correct for RTL
+- Arabic fonts: Cairo + Tajawal loaded from Google Fonts in `index.html`
 
 ## Seed / Test Credentials
 
