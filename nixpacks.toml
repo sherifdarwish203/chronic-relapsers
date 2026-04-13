@@ -1,0 +1,11 @@
+[phases.build]
+cmds = ["npm install --workspace=server", "npm run build --workspace=server"]
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[start]
+cmd = "npm run start --workspace=server"
+
+[variables]
+PUPPETEER_SKIP_DOWNLOAD = "true"
