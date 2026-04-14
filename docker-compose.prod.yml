@@ -20,6 +20,7 @@ services:
       ALLOWED_ORIGIN: https://rehab.recoverypsychcenter.com
     labels:
       - traefik.enable=true
+      - traefik.docker.network=root_default
       - traefik.http.routers.recovery.rule=Host(`rehab.recoverypsychcenter.com`)
       - traefik.http.routers.recovery.tls=true
       - traefik.http.routers.recovery.entrypoints=web,websecure
