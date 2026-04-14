@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 import fs from 'fs';
-import path from 'path';
 import pool from './index';
 
 async function migrate() {
