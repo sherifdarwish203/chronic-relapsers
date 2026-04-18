@@ -11,6 +11,7 @@ router.post('/', requirePatient, async (req: Request, res: Response): Promise<vo
   const { type, start_month, start_year, end_month, end_year } = req.body;
   const note = sanitiseText(req.body.note);
   const substances: string[] = Array.isArray(req.body.substances) ? req.body.substances : [];
+  const urge_data = (req.body.urge_data && typeof req.body.urge_data === 'object') ? req.body.urge_data : null;
 
   // Validate type
   const validTypes = ['abstinent', 'relapse', 'reduced'];
@@ -37,10 +38,10 @@ router.post('/', requirePatient, async (req: Request, res: Response): Promise<vo
     const sort_order = maxOrder.rows[0].max_order + 1;
 
     const result = await pool.query(
-      `INSERT INTO periods (patient_id, type, start_month, start_year, end_month, end_year, duration_months, note, substances, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO periods (patient_id, type, start_month, start_year, end_month, end_year, duration_months, note, substances, urge_data, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
-      [patientId, type, start_month, start_year, end_month || null, end_year || null, duration_months, note || null, substances, sort_order]
+      [patientId, type, start_month, start_year, end_month || null, end_year || null, duration_months, note || null, substances, urge_data, sort_order]
     );
 
     res.status(201).json({ period: { ...result.rows[0], events: [] } });
@@ -75,6 +76,9 @@ router.patch('/:id', requirePatient, async (req: Request, res: Response): Promis
   const substances: string[] = req.body.substances !== undefined
     ? (Array.isArray(req.body.substances) ? req.body.substances : [])
     : current.substances;
+  const urge_data = req.body.urge_data !== undefined
+    ? ((req.body.urge_data && typeof req.body.urge_data === 'object') ? req.body.urge_data : null)
+    : current.urge_data;
 
   const dateError = validatePeriodDates({ start_month, start_year, end_month, end_year });
   if (dateError) {
@@ -87,12 +91,49 @@ router.patch('/:id', requirePatient, async (req: Request, res: Response): Promis
   try {
     const result = await pool.query(
       `UPDATE periods SET type=$1, start_month=$2, start_year=$3, end_month=$4, end_year=$5,
-       duration_months=$6, note=$7, substances=$8
-       WHERE id=$9 AND patient_id=$10
+       duration_months=$6, note=$7, substances=$8, urge_data=$9
+       WHERE id=$10 AND patient_id=$11
        RETURNING *`,
-      [type, start_month, start_year, end_month || null, end_year || null, duration_months, note, substances, periodId, patientId]
+      [type, start_month, start_year, end_month || null, end_year || null, duration_months, note, substances, urge_data, periodId, patientId]
     );
 
+    const events = await pool.query('SELECT * FROM events WHERE period_id = $1', [periodId]);
+    res.json({ period: { ...result.rows[0], events: events.rows } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'خطأ في الخادم' });
+  }
+});
+
+// PATCH /periods/:id/urge — save urge assessment data only
+router.patch('/:id/urge', requirePatient, async (req: Request, res: Response): Promise<void> => {
+  const patientId = req.patient!.patient_id;
+  const periodId = parseInt(req.params.id);
+
+  const existing = await pool.query(
+    'SELECT id, type FROM periods WHERE id = $1 AND patient_id = $2',
+    [periodId, patientId]
+  );
+  if (existing.rows.length === 0) {
+    res.status(404).json({ error: 'الفترة غير موجودة' });
+    return;
+  }
+  if (existing.rows[0].type !== 'reduced') {
+    res.status(400).json({ error: 'تقييم الرغبة متاح فقط لفترات فكرة ضرب' });
+    return;
+  }
+
+  const urge_data = req.body.urge_data;
+  if (!urge_data || typeof urge_data !== 'object') {
+    res.status(400).json({ error: 'بيانات التقييم مطلوبة' });
+    return;
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE periods SET urge_data = $1 WHERE id = $2 AND patient_id = $3 RETURNING *`,
+      [urge_data, periodId, patientId]
+    );
     const events = await pool.query('SELECT * FROM events WHERE period_id = $1', [periodId]);
     res.json({ period: { ...result.rows[0], events: events.rows } });
   } catch (err) {

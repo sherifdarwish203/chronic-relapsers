@@ -22,7 +22,7 @@ export default function AggregateChart({
     <div className="space-y-2">
       {items.map((item) => (
         <div key={item.name} className="flex items-center gap-2">
-          <span className="text-sm text-gray-700 w-40 truncate text-right flex-shrink-0">
+          <span className="text-sm text-gray-700 w-32 sm:w-40 truncate text-right flex-shrink-0">
             {item.name}
           </span>
           <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">

@@ -96,7 +96,7 @@ export default function PatientStart() {
               className="input-base font-mono tracking-widest"
               maxLength={7}
             />
-            <p className="text-[11px] text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               الكود موجود على الورقة اللي اديكها المعالج
             </p>
           </div>

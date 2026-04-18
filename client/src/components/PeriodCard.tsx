@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Period } from '../hooks/usePatient';
 import { formatDurationAr, formatDateRangeAr } from '../utils/dates';
+import { CONTROLLED_OPTIONS } from '../constants/presets';
 
 interface PeriodCardProps {
   period: Period;
@@ -25,7 +26,7 @@ const TYPE_CONFIG = {
     noteBorder: 'border-red-400',
   },
   reduced: {
-    label: 'تعاطي منخفض',
+    label: 'فكرة ضرب',
     bg: 'bg-[#FFFBEB]',
     border: 'border-[#FCD34D]',
     text: 'text-amber-700',
@@ -58,8 +59,8 @@ export default function PeriodCard({ period, onDelete }: PeriodCardProps) {
         </blockquote>
       )}
 
-      {/* Row 4: substances (relapse / reduced) */}
-      {(period.type === 'relapse' || period.type === 'reduced') && period.substances?.length > 0 && (
+      {/* Row 4: substances (relapse only) */}
+      {period.type === 'relapse' && period.substances?.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
           {period.substances.map((s) => (
             <span key={s} className="px-2 py-0.5 text-xs rounded-full border border-amber-300 bg-amber-50 text-amber-800">
@@ -82,6 +83,24 @@ export default function PeriodCard({ period, onDelete }: PeriodCardProps) {
         </div>
       )}
 
+      {/* Row 5b: urge badge (reduced only) */}
+      {period.type === 'reduced' && (
+        <div className="mb-3">
+          {period.urge_data ? (
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2 py-0.5">
+                ✓ تم تقييم الرغبة
+              </span>
+              {period.urge_data.controlled && (
+                <span className="text-xs text-gray-500">{CONTROLLED_OPTIONS[period.urge_data.controlled]}</span>
+              )}
+            </div>
+          ) : (
+            <span className="text-xs text-gray-400">لم يُسجَّل تقييم الرغبة</span>
+          )}
+        </div>
+      )}
+
       {/* Action buttons */}
       <div className="flex gap-2 flex-row-reverse">
         <button
@@ -96,6 +115,14 @@ export default function PeriodCard({ period, onDelete }: PeriodCardProps) {
             className="btn-secondary text-xs"
           >
             أحداث
+          </button>
+        )}
+        {period.type === 'reduced' && (
+          <button
+            onClick={() => navigate(`/timeline/urge/${period.id}`)}
+            className="btn-secondary text-xs"
+          >
+            {period.urge_data ? 'تعديل التقييم' : 'تقييم الرغبة'}
           </button>
         )}
       </div>

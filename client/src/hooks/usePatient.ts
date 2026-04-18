@@ -15,6 +15,15 @@ export interface Event {
   created_at: string;
 }
 
+export interface UrgeData {
+  triggers: { external: string[]; internal: string[] };
+  management: { strategies: string[]; free_text: string | null };
+  controlled: 'yes' | 'partial' | 'not_yet' | null;
+  help_sought: { reached_out: boolean; who: string | null };
+  prevention_activity: { attended: boolean; what: string | null };
+  remaining_craving: { still_present: boolean; intensity: number | null };
+}
+
 export interface Period {
   id: number;
   patient_id: number;
@@ -26,6 +35,7 @@ export interface Period {
   duration_months: number | null;
   note: string | null;
   substances: string[];
+  urge_data: UrgeData | null;
   sort_order: number;
   created_at: string;
   events: Event[];
@@ -90,6 +100,15 @@ export function usePatient() {
     );
   };
 
+  const updatePeriodUrgeData = useCallback(async (periodId: number, urgeData: UrgeData) => {
+    const res = await api.patch(`/periods/${periodId}/urge`, { urge_data: urgeData });
+    setPeriods((prev) =>
+      prev.map((p) =>
+        p.id === periodId ? { ...p, urge_data: res.data.period.urge_data } : p
+      )
+    );
+  }, []);
+
   return {
     patient, setPatient,
     periods, setPeriods,
@@ -97,5 +116,6 @@ export function usePatient() {
     fetchMe,
     addPeriod, removePeriod,
     addEvent, removeEvent,
+    updatePeriodUrgeData,
   };
 }

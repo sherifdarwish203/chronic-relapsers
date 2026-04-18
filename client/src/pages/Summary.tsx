@@ -17,6 +17,7 @@ export default function Summary() {
 
   const abstinencePeriods = periods.filter((p) => p.type === 'abstinent');
   const relapsePeriods = periods.filter((p) => p.type === 'relapse');
+  const urgePeriods = periods.filter((p) => p.type === 'reduced');
   const longestAbstinence = abstinencePeriods.reduce(
     (max, p) => Math.max(max, p.duration_months || 0), 0
   );
@@ -82,7 +83,7 @@ export default function Summary() {
         </div>
 
         {/* Section A: Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className={`grid gap-3 mb-4 ${urgePeriods.length > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
           <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-xl p-4 text-center">
             <p className="text-2xl font-bold text-green-700">{abstinencePeriods.length}</p>
             <p className="text-xs text-green-600 mt-1">فترات امتناع</p>
@@ -91,6 +92,12 @@ export default function Summary() {
             <p className="text-2xl font-bold text-red-700">{relapsePeriods.length}</p>
             <p className="text-xs text-red-600 mt-1">انتكاسات</p>
           </div>
+          {urgePeriods.length > 0 && (
+            <div className="bg-[#FFFBEB] border border-[#FCD34D] rounded-xl p-4 text-center">
+              <p className="text-2xl font-bold text-amber-700">{urgePeriods.length}</p>
+              <p className="text-xs text-amber-600 mt-1">فكرة ضرب</p>
+            </div>
+          )}
         </div>
 
         {/* Section B: Longest abstinence */}

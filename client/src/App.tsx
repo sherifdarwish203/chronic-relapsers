@@ -3,6 +3,7 @@ import Landing from './pages/Landing';
 import PatientStart from './pages/PatientStart';
 import Timeline from './pages/Timeline';
 import EventMapping from './pages/EventMapping';
+import UrgeAssessment from './pages/UrgeAssessment';
 import Summary from './pages/Summary';
 import FacilitatorLogin from './pages/FacilitatorLogin';
 import Dashboard from './pages/Dashboard';
@@ -35,6 +36,9 @@ export default function App() {
         } />
         <Route path="/timeline/events/:period_id" element={
           <PatientGuard><EventMapping /></PatientGuard>
+        } />
+        <Route path="/timeline/urge/:period_id" element={
+          <PatientGuard><UrgeAssessment /></PatientGuard>
         } />
         <Route path="/summary" element={
           <PatientGuard><Summary /></PatientGuard>

@@ -51,6 +51,43 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// POST /facilitators — create a new facilitator account (requires facilitator auth)
+router.post('/', requireFacilitator, async (req: Request, res: Response): Promise<void> => {
+  const username = (req.body.username || '').toString().trim().toLowerCase();
+  const password = (req.body.password || '').toString();
+  const full_name = (req.body.full_name || '').toString().trim();
+
+  if (!username || !password) {
+    res.status(400).json({ error: 'Username and password are required' });
+    return;
+  }
+  if (password.length < 8) {
+    res.status(400).json({ error: 'Password must be at least 8 characters' });
+    return;
+  }
+
+  try {
+    const existing = await pool.query('SELECT id FROM facilitators WHERE username = $1', [username]);
+    if (existing.rows.length > 0) {
+      res.status(409).json({ error: 'Username already exists' });
+      return;
+    }
+
+    const password_hash = await bcrypt.hash(password, 12);
+    const result = await pool.query(
+      `INSERT INTO facilitators (username, password_hash, full_name)
+       VALUES ($1, $2, $3)
+       RETURNING id, username, full_name, created_at`,
+      [username, password_hash, full_name || null]
+    );
+
+    res.status(201).json({ facilitator: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // POST /facilitators/patients — generate a new patient code and create the record
 router.post('/patients', requireFacilitator, async (req: Request, res: Response): Promise<void> => {
   const display_name = (req.body.display_name || '').toString().trim() || 'مريض جديد';

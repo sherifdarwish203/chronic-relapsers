@@ -55,8 +55,28 @@ export const INTERNAL_TRIGGERS = [
 export const PERIOD_TYPES = {
   abstinent: 'فترة امتناع',
   relapse: 'انتكاسة / عودة للتعاطي',
-  reduced: 'تعاطي منخفض',
+  reduced: 'فكرة ضرب',
 } as const;
+
+export const CRAVING_MANAGEMENT = [
+  'مشيت أو اتمرنت',
+  'اتصلت بشخص داعم',
+  'لجأت للدعاء أو التأمل',
+  'كتبت في دفتر يومياتي',
+  'شغلت نفسي بشيء تاني',
+  'مشيت من المكان اللي أثار عندي الرغبة',
+  'استخدمت تقنية التأجيل (انتظرت ١٠ دقايق)',
+  'اتذكرت عواقب التعاطي',
+  'اتصلت بالمعالج',
+  'حضرت اجتماع دعم',
+  'أخرى',
+] as const;
+
+export const CONTROLLED_OPTIONS: Record<string, string> = {
+  yes: 'آه، قدرت أتحكم فيها',
+  partial: 'نص نص',
+  not_yet: 'لأ، لسه بحاول',
+};
 
 export const ARABIC_MONTHS = [
   '', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',

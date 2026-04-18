@@ -1,6 +1,6 @@
 import { Period } from '../hooks/usePatient';
 import { formatDurationAr, formatDateRangeAr } from '../utils/dates';
-import { TIMEFRAMES, CLASSIFICATIONS, SAW_IT_COMING } from '../constants/presets';
+import { TIMEFRAMES, CLASSIFICATIONS, SAW_IT_COMING, CONTROLLED_OPTIONS } from '../constants/presets';
 
 interface SummarySectionProps {
   periods: Period[];
@@ -9,7 +9,7 @@ interface SummarySectionProps {
 const TYPE_CFG = {
   abstinent: { dot: 'bg-green-500', text: 'text-green-700', label: 'فترة امتناع', noteBorder: 'border-green-400', bg: 'bg-green-50' },
   relapse:   { dot: 'bg-red-500',   text: 'text-red-700',   label: 'انتكاسة',       noteBorder: 'border-red-400',   bg: 'bg-red-50'   },
-  reduced:   { dot: 'bg-amber-500', text: 'text-amber-700', label: 'تعاطي منخفض',  noteBorder: 'border-amber-400', bg: 'bg-amber-50' },
+  reduced:   { dot: 'bg-amber-500', text: 'text-amber-700', label: 'فكرة ضرب',     noteBorder: 'border-amber-400', bg: 'bg-amber-50' },
 };
 
 export default function SummarySection({ periods }: SummarySectionProps) {
@@ -37,14 +37,52 @@ export default function SummarySection({ periods }: SummarySectionProps) {
                 {formatDateRangeAr(period.start_month, period.start_year, period.end_month, period.end_year)}
               </p>
 
-              {/* Substances (relapse / reduced) */}
-              {(period.type === 'relapse' || period.type === 'reduced') && period.substances?.length > 0 && (
+              {/* Substances (relapse only) */}
+              {period.type === 'relapse' && period.substances?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1 mb-1">
                   {period.substances.map((s) => (
                     <span key={s} className="px-2 py-0.5 text-xs rounded-full border border-amber-300 bg-amber-50 text-amber-800">
                       {s}
                     </span>
                   ))}
+                </div>
+              )}
+
+              {/* Urge assessment summary (reduced only) */}
+              {period.type === 'reduced' && period.urge_data && (
+                <div className="mt-2 bg-amber-50 rounded-lg p-3 text-sm">
+                  {period.urge_data.triggers.external.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-1">
+                      <span className="text-xs text-gray-500 ml-1">محفزات خارجية:</span>
+                      {period.urge_data.triggers.external.map((t) => (
+                        <span key={t} className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs">{t}</span>
+                      ))}
+                    </div>
+                  )}
+                  {period.urge_data.triggers.internal.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-1">
+                      <span className="text-xs text-gray-500 ml-1">محفزات داخلية:</span>
+                      {period.urge_data.triggers.internal.map((t) => (
+                        <span key={t} className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs">{t}</span>
+                      ))}
+                    </div>
+                  )}
+                  {period.urge_data.management.strategies.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-1">
+                      <span className="text-xs text-gray-500 ml-1">التعامل:</span>
+                      {period.urge_data.management.strategies.map((s) => (
+                        <span key={s} className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs">{s}</span>
+                      ))}
+                    </div>
+                  )}
+                  {period.urge_data.controlled && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      التحكم: {CONTROLLED_OPTIONS[period.urge_data.controlled]}
+                      {period.urge_data.remaining_craving.still_present && period.urge_data.remaining_craving.intensity && (
+                        <span> · شدة الرغبة المتبقية: {period.urge_data.remaining_craving.intensity}/5</span>
+                      )}
+                    </p>
+                  )}
                 </div>
               )}
 

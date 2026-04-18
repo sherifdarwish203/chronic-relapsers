@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS periods (
   duration_months  INTEGER,
   note             TEXT,
   substances       TEXT[] DEFAULT '{}',
+  urge_data        JSONB DEFAULT NULL,
   sort_order       INTEGER,
   created_at       TIMESTAMP DEFAULT NOW()
 );

@@ -40,6 +40,15 @@ export default function Dashboard() {
   const [newCode, setNewCode] = useState<{ code: string; display_name: string } | null>(null);
   const [creating, setCreating] = useState(false);
 
+  // Create facilitator form
+  const [showFacilitatorForm, setShowFacilitatorForm] = useState(false);
+  const [newFacilitatorName, setNewFacilitatorName] = useState('');
+  const [newFacilitatorUsername, setNewFacilitatorUsername] = useState('');
+  const [newFacilitatorPassword, setNewFacilitatorPassword] = useState('');
+  const [creatingFacilitator, setCreatingFacilitator] = useState(false);
+  const [facilitatorFormError, setFacilitatorFormError] = useState('');
+  const [facilitatorCreated, setFacilitatorCreated] = useState<string | null>(null);
+
   // Edit modal
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
   const [editName, setEditName] = useState('');
@@ -115,6 +124,36 @@ export default function Dashboard() {
     }
   };
 
+  const handleCreateFacilitator = async () => {
+    setFacilitatorFormError('');
+    if (!newFacilitatorUsername.trim() || !newFacilitatorPassword) {
+      setFacilitatorFormError('Username and password are required.');
+      return;
+    }
+    if (newFacilitatorPassword.length < 8) {
+      setFacilitatorFormError('Password must be at least 8 characters.');
+      return;
+    }
+    setCreatingFacilitator(true);
+    try {
+      const res = await api.post('/facilitators', {
+        username: newFacilitatorUsername.trim(),
+        password: newFacilitatorPassword,
+        full_name: newFacilitatorName.trim() || undefined,
+      });
+      setFacilitatorCreated(res.data.facilitator.username);
+      setShowFacilitatorForm(false);
+      setNewFacilitatorName('');
+      setNewFacilitatorUsername('');
+      setNewFacilitatorPassword('');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || 'Failed to create account.';
+      setFacilitatorFormError(msg);
+    } finally {
+      setCreatingFacilitator(false);
+    }
+  };
+
   const toggleEditSubstance = (s: string) => {
     setEditSubstances((prev) =>
       prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]
@@ -155,6 +194,12 @@ export default function Dashboard() {
             >
               + New Patient
             </button>
+            <button
+              onClick={() => { setShowFacilitatorForm((v) => !v); setFacilitatorFormError(''); setFacilitatorCreated(null); }}
+              className="text-sm text-white bg-blue-700 hover:bg-blue-800 rounded px-3 py-1"
+            >
+              + New Doctor
+            </button>
             <button onClick={fetchData} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded px-2 py-1">
               Refresh
             </button>
@@ -192,6 +237,67 @@ export default function Dashboard() {
                 Cancel
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Create facilitator form */}
+        {showFacilitatorForm && (
+          <div className="bg-white border border-blue-200 rounded-xl p-5 mb-5">
+            <h3 className="font-medium text-gray-800 mb-3">New Doctor Account</h3>
+            <div className="grid grid-cols-1 gap-3 mb-3">
+              <input
+                type="text"
+                value={newFacilitatorName}
+                onChange={(e) => setNewFacilitatorName(e.target.value)}
+                placeholder="Full name (optional)"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-600"
+              />
+              <input
+                type="text"
+                value={newFacilitatorUsername}
+                onChange={(e) => setNewFacilitatorUsername(e.target.value)}
+                placeholder="Username *"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-600"
+                autoComplete="off"
+              />
+              <input
+                type="password"
+                value={newFacilitatorPassword}
+                onChange={(e) => setNewFacilitatorPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCreateFacilitator()}
+                placeholder="Password * (min 8 chars)"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-600"
+                autoComplete="new-password"
+              />
+            </div>
+            {facilitatorFormError && (
+              <p className="text-sm text-red-600 mb-3">{facilitatorFormError}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={handleCreateFacilitator}
+                disabled={creatingFacilitator}
+                className="bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white text-sm rounded-lg px-4 py-2"
+              >
+                {creatingFacilitator ? '...' : 'Create Account'}
+              </button>
+              <button
+                onClick={() => { setShowFacilitatorForm(false); setFacilitatorFormError(''); }}
+                className="text-gray-400 hover:text-gray-600 text-sm border border-gray-200 rounded-lg px-3 py-2"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Facilitator created banner */}
+        {facilitatorCreated && (
+          <div className="bg-blue-50 border border-blue-300 rounded-xl p-4 mb-5 flex items-center justify-between">
+            <p className="text-sm text-blue-800">
+              Doctor account created: <strong>{facilitatorCreated}</strong>
+            </p>
+            <button onClick={() => setFacilitatorCreated(null)} className="text-blue-500 hover:text-blue-700 text-xl font-bold ml-4 leading-none">×</button>
           </div>
         )}
 

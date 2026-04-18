@@ -13,19 +13,19 @@ interface ToastState { message: string; type: 'success' | 'error' }
 const PERIOD_TYPE_OPTIONS = [
   { value: 'abstinent', label: 'فترة امتناع' },
   { value: 'relapse', label: 'انتكاسة / عودة للتعاطي' },
-  { value: 'reduced', label: 'تعاطي منخفض' },
+  { value: 'reduced', label: 'فكرة ضرب' },
 ];
 
 const NOTE_LABELS: Record<string, string> = {
   abstinent: 'إيه اللي ساعدك تبدأ فترة الامتناع دي؟ إيه اللي اتغير؟',
   relapse: 'إيه اللي حصل اللي أدى للانتكاسة دي؟ (ملخص سريع)',
-  reduced: 'إيه اللي كان بيحصل في الفترة دي؟ إيه اللي دفعك للتعاطي المنخفض؟',
+  reduced: 'إيه اللي أثار عندك فكرة ضرب دي؟ (ملخص سريع)',
 };
 
 const NOTE_PLACEHOLDERS: Record<string, string> = {
   abstinent: 'مثلاً: بدأت علاج، اتقرّبت من الأسرة، غيّرت البيئة...',
   relapse: 'مثلاً: كنت تحت ضغط شديد، حصل خلاف، وقفت عن الدواء...',
-  reduced: 'مثلاً: حاولت أخفّف بدل ما أوقف فجأة، كنت في ظروف صعبة...',
+  reduced: 'مثلاً: حسيت بضغط شديد، شفت شخص بيتعاطى...',
 };
 
 export default function Timeline() {
@@ -79,7 +79,7 @@ export default function Timeline() {
         start_month: parseInt(startMonth),
         start_year: parseInt(startYear),
         note: note || undefined,
-        substances: (type === 'relapse' || type === 'reduced') ? substances : [],
+        substances: type === 'relapse' ? substances : [],
       };
       if (endMonth && endYear) {
         payload.end_month = parseInt(endMonth);
@@ -134,7 +134,7 @@ export default function Timeline() {
         <div className="flex items-center justify-center gap-4 mb-4 text-xs text-gray-600">
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" />فترة امتناع</span>
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />انتكاسة</span>
-          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />تعاطي منخفض</span>
+          <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />فكرة ضرب</span>
         </div>
 
         {/* Period list */}
@@ -233,8 +233,8 @@ export default function Timeline() {
               )}
             </div>
 
-            {/* Substances — only for relapse / reduced */}
-            {(type === 'relapse' || type === 'reduced') && (
+            {/* Substances — only for relapse */}
+            {type === 'relapse' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   المادة المستخدمة في هذه الفترة
