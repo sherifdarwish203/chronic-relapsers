@@ -60,3 +60,10 @@ DROP TRIGGER IF EXISTS update_patients_updated_at ON patients;
 CREATE TRIGGER update_patients_updated_at
   BEFORE UPDATE ON patients
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Idempotent column migrations: safe to run on existing databases.
+-- Add new columns here whenever the schema evolves.
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS substances   TEXT[] DEFAULT '{}';
+ALTER TABLE periods  ADD COLUMN IF NOT EXISTS substances   TEXT[] DEFAULT '{}';
+ALTER TABLE periods  ADD COLUMN IF NOT EXISTS urge_data    JSONB DEFAULT NULL;
+ALTER TABLE periods  ADD COLUMN IF NOT EXISTS sort_order   INTEGER;
