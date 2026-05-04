@@ -76,7 +76,20 @@ export const CONTROLLED_OPTIONS: Record<string, string> = {
   yes: 'آه، قدرت أتحكم فيها',
   partial: 'نص نص',
   not_yet: 'لأ، لسه بحاول',
+  relapsed: 'انتكست (تعاطيت)',
 };
+
+export const ACTIVITY_TYPES: Record<string, string> = {
+  individual: 'جلسة فردية',
+  group: 'جلسة جماعية',
+  community: 'نشاط مجتمعي',
+};
+
+export const ACTIVITY_TYPE_OPTIONS = [
+  { value: 'individual', label: 'جلسة فردية' },
+  { value: 'group', label: 'جلسة جماعية' },
+  { value: 'community', label: 'نشاط مجتمعي (رحلة، رياضة، إلخ)' },
+];
 
 export const ARABIC_MONTHS = [
   '', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',

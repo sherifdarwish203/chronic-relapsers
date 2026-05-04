@@ -37,6 +37,7 @@ export default function Timeline() {
 
   // Form state
   const [type, setType] = useState('abstinent');
+  const [startDay, setStartDay] = useState('');
   const [startMonth, setStartMonth] = useState('');
   const [startYear, setStartYear] = useState('');
   const [endMonth, setEndMonth] = useState('');
@@ -44,6 +45,7 @@ export default function Timeline() {
   const [note, setNote] = useState('');
   const [substances, setSubstances] = useState<string[]>([]);
   const [dateError, setDateError] = useState<string | null>(null);
+  const [overlapError, setOverlapError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -58,17 +60,38 @@ export default function Timeline() {
     }
   }, [startMonth, startYear, endMonth, endYear]);
 
+  // Overlap check against existing periods
+  useEffect(() => {
+    if (type === 'reduced' || !startMonth || !startYear) { setOverlapError(null); return; }
+    const MAX = 999999;
+    const newStart = parseInt(startYear) * 12 + parseInt(startMonth);
+    const newEnd = endMonth && endYear ? parseInt(endYear) * 12 + parseInt(endMonth) : MAX;
+    const hit = periods.find((p) => {
+      if (p.type === 'reduced') return false;
+      const pStart = p.start_year * 12 + p.start_month;
+      const pEnd = p.end_month && p.end_year ? p.end_year * 12 + p.end_month : MAX;
+      return newStart <= pEnd && newEnd >= pStart;
+    });
+    if (hit) {
+      const label = hit.type === 'abstinent' ? 'فترة امتناع' : 'انتكاسة';
+      setOverlapError(`هذه الفترة تتداخل مع ${label} مسجلة مسبقاً`);
+    } else {
+      setOverlapError(null);
+    }
+  }, [startMonth, startYear, endMonth, endYear, type, periods]);
+
   const resetForm = () => {
     setType('abstinent');
-    setStartMonth(''); setStartYear('');
+    setStartDay(''); setStartMonth(''); setStartYear('');
     setEndMonth(''); setEndYear('');
     setNote('');
     setSubstances([]);
     setDateError(null);
+    setOverlapError(null);
     setShowForm(false);
   };
 
-  const canSubmit = startMonth && startYear && !dateError && !submitting;
+  const canSubmit = startMonth && startYear && !dateError && !overlapError && !submitting;
 
   const handleAddPeriod = async () => {
     if (!canSubmit) return;
@@ -76,12 +99,13 @@ export default function Timeline() {
     try {
       const payload: Record<string, unknown> = {
         type,
+        start_day: startDay ? parseInt(startDay) : undefined,
         start_month: parseInt(startMonth),
         start_year: parseInt(startYear),
         note: note || undefined,
         substances: type === 'relapse' ? substances : [],
       };
-      if (endMonth && endYear) {
+      if (type !== 'reduced' && endMonth && endYear) {
         payload.end_month = parseInt(endMonth);
         payload.end_year = parseInt(endYear);
       }
@@ -118,7 +142,7 @@ export default function Timeline() {
       <div className="w-full max-w-[520px]">
         {/* Header */}
         <div className="flex items-center mb-2">
-          <button onClick={() => navigate('/start')} className="text-gray-500 hover:text-gray-700 ml-3">
+          <button onClick={() => navigate('/home')} className="text-gray-500 hover:text-gray-700 ml-3">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
@@ -174,64 +198,107 @@ export default function Timeline() {
               </select>
             </div>
 
-            {/* Start date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">تاريخ البداية</label>
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={startMonth}
-                  onChange={(e) => setStartMonth(e.target.value)}
-                  className={`input-base ${dateError && startMonth ? 'input-error' : ''}`}
-                >
-                  <option value="">شهر البداية</option>
-                  {monthOptions.map((m) => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
-                <select
-                  value={startYear}
-                  onChange={(e) => setStartYear(e.target.value)}
-                  className={`input-base ${dateError && startYear ? 'input-error' : ''}`}
-                >
-                  <option value="">سنة البداية</option>
-                  {years.map((y) => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* End date */}
+            {/* Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                تاريخ النهاية <span className="text-gray-400 font-normal">(اتركه فارغ = مستمرة)</span>
+                {type === 'reduced' ? 'تاريخ فكرة الضرب' : 'تاريخ البداية'}
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={endMonth}
-                  onChange={(e) => setEndMonth(e.target.value)}
-                  className={`input-base ${dateError ? 'input-error' : ''}`}
-                >
-                  <option value="">فارغ = مستمرة</option>
-                  {monthOptions.map((m) => (
-                    <option key={m.value} value={m.value}>{m.label}</option>
-                  ))}
-                </select>
-                <select
-                  value={endYear}
-                  onChange={(e) => setEndYear(e.target.value)}
-                  className={`input-base ${dateError ? 'input-error' : ''}`}
-                >
-                  <option value="">—</option>
-                  {years.map((y) => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
-              </div>
-              {dateError && (
-                <p className="text-[12px] text-error mt-1">{dateError}</p>
+              {type === 'reduced' ? (
+                <div className="grid grid-cols-3 gap-2">
+                  <select
+                    value={startDay}
+                    onChange={(e) => setStartDay(e.target.value)}
+                    className="input-base"
+                  >
+                    <option value="">اليوم</option>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={startMonth}
+                    onChange={(e) => setStartMonth(e.target.value)}
+                    className="input-base"
+                  >
+                    <option value="">الشهر</option>
+                    {monthOptions.map((m) => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={startYear}
+                    onChange={(e) => setStartYear(e.target.value)}
+                    className="input-base"
+                  >
+                    <option value="">السنة</option>
+                    {years.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={startMonth}
+                    onChange={(e) => setStartMonth(e.target.value)}
+                    className={`input-base ${dateError && startMonth ? 'input-error' : ''}`}
+                  >
+                    <option value="">شهر البداية</option>
+                    {monthOptions.map((m) => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={startYear}
+                    onChange={(e) => setStartYear(e.target.value)}
+                    className={`input-base ${dateError && startYear ? 'input-error' : ''}`}
+                  >
+                    <option value="">سنة البداية</option>
+                    {years.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
               )}
             </div>
+
+            {overlapError && (
+              <p className="text-[12px] text-error -mt-2">{overlapError}</p>
+            )}
+
+            {/* End date — hidden for فكرة ضرب */}
+            {type !== 'reduced' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  تاريخ النهاية <span className="text-gray-400 font-normal">(اتركه فارغ = مستمرة)</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={endMonth}
+                    onChange={(e) => setEndMonth(e.target.value)}
+                    className={`input-base ${dateError ? 'input-error' : ''}`}
+                  >
+                    <option value="">فارغ = مستمرة</option>
+                    {monthOptions.map((m) => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={endYear}
+                    onChange={(e) => setEndYear(e.target.value)}
+                    className={`input-base ${dateError ? 'input-error' : ''}`}
+                  >
+                    <option value="">—</option>
+                    {years.map((y) => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+                {dateError && (
+                  <p className="text-[12px] text-error mt-1">{dateError}</p>
+                )}
+              </div>
+            )}
 
             {/* Substances — only for relapse */}
             {type === 'relapse' && (
@@ -291,7 +358,7 @@ export default function Timeline() {
             حفظ ومشاهدة الملخص ←
           </button>
           <button
-            onClick={() => navigate('/start')}
+            onClick={() => navigate('/home')}
             className="btn-secondary w-full"
           >
             رجوع

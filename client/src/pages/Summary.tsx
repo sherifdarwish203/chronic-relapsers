@@ -15,6 +15,11 @@ export default function Summary() {
     fetchMe();
   }, [fetchMe]);
 
+  // Newest first for display; keep all stats derived from original array
+  const sortedPeriods = [...periods].sort(
+    (a, b) => (b.start_year * 12 + b.start_month) - (a.start_year * 12 + a.start_month)
+  );
+
   const abstinencePeriods = periods.filter((p) => p.type === 'abstinent');
   const relapsePeriods = periods.filter((p) => p.type === 'relapse');
   const urgePeriods = periods.filter((p) => p.type === 'reduced');
@@ -114,7 +119,7 @@ export default function Summary() {
           {periods.length === 0 ? (
             <p className="text-sm text-gray-400 text-center">لا توجد فترات مسجلة</p>
           ) : (
-            <SummarySection periods={periods} />
+            <SummarySection periods={sortedPeriods} />
           )}
         </div>
 

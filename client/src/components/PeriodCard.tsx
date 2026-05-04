@@ -49,7 +49,7 @@ export default function PeriodCard({ period, onDelete }: PeriodCardProps) {
 
       {/* Row 2: date range */}
       <p className="text-xs text-gray-500 mb-2">
-        {formatDateRangeAr(period.start_month, period.start_year, period.end_month, period.end_year)}
+        {formatDateRangeAr(period.start_month, period.start_year, period.end_month, period.end_year, period.start_day)}
       </p>
 
       {/* Row 3: note */}

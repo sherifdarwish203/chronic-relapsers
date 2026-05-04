@@ -61,9 +61,22 @@ CREATE TRIGGER update_patients_updated_at
   BEFORE UPDATE ON patients
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TABLE IF NOT EXISTS activities (
+  id           SERIAL PRIMARY KEY,
+  patient_id   INTEGER NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  act_day      SMALLINT CHECK (act_day BETWEEN 1 AND 31),
+  act_month    SMALLINT NOT NULL CHECK (act_month BETWEEN 1 AND 12),
+  act_year     SMALLINT NOT NULL,
+  type         VARCHAR(30) NOT NULL CHECK (type IN ('individual','group','community')),
+  therapist    TEXT,
+  summary      TEXT,
+  created_at   TIMESTAMP DEFAULT NOW()
+);
+
 -- Idempotent column migrations: safe to run on existing databases.
 -- Add new columns here whenever the schema evolves.
 ALTER TABLE patients ADD COLUMN IF NOT EXISTS substances   TEXT[] DEFAULT '{}';
 ALTER TABLE periods  ADD COLUMN IF NOT EXISTS substances   TEXT[] DEFAULT '{}';
 ALTER TABLE periods  ADD COLUMN IF NOT EXISTS urge_data    JSONB DEFAULT NULL;
 ALTER TABLE periods  ADD COLUMN IF NOT EXISTS sort_order   INTEGER;
+ALTER TABLE periods  ADD COLUMN IF NOT EXISTS start_day    SMALLINT CHECK (start_day BETWEEN 1 AND 31);

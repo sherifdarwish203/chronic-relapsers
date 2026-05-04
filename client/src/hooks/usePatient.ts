@@ -1,6 +1,18 @@
 import { useState, useCallback } from 'react';
 import api from '../api/client';
 
+export interface Activity {
+  id: number;
+  patient_id: number;
+  act_day: number | null;
+  act_month: number;
+  act_year: number;
+  type: 'individual' | 'group' | 'community';
+  therapist: string | null;
+  summary: string | null;
+  created_at: string;
+}
+
 export interface Event {
   id: number;
   period_id: number;
@@ -16,9 +28,10 @@ export interface Event {
 }
 
 export interface UrgeData {
-  triggers: { external: string[]; internal: string[] };
+  date: { day: number; month: number; year: number } | null;
+  triggers: { external: string[]; ext_other: string | null; internal: string[]; int_other: string | null };
   management: { strategies: string[]; free_text: string | null };
-  controlled: 'yes' | 'partial' | 'not_yet' | null;
+  controlled: 'yes' | 'partial' | 'not_yet' | 'relapsed' | null;
   help_sought: { reached_out: boolean; who: string | null };
   prevention_activity: { attended: boolean; what: string | null };
   remaining_craving: { still_present: boolean; intensity: number | null };
@@ -28,6 +41,7 @@ export interface Period {
   id: number;
   patient_id: number;
   type: 'abstinent' | 'relapse' | 'reduced';
+  start_day: number | null;
   start_month: number;
   start_year: number;
   end_month: number | null;
@@ -53,6 +67,7 @@ export interface Patient {
 export function usePatient() {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [periods, setPeriods] = useState<Period[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,6 +78,7 @@ export function usePatient() {
       const res = await api.get('/patients/me');
       setPatient(res.data.patient);
       setPeriods(res.data.periods);
+      setActivities(res.data.activities || []);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || 'خطأ في تحميل البيانات';
       setError(msg);
@@ -109,13 +125,27 @@ export function usePatient() {
     );
   }, []);
 
+  const addActivity = (activity: Activity) => {
+    setActivities((prev) =>
+      [activity, ...prev].sort(
+        (a, b) => (b.act_year * 12 + b.act_month) - (a.act_year * 12 + a.act_month)
+      )
+    );
+  };
+
+  const removeActivity = (activityId: number) => {
+    setActivities((prev) => prev.filter((a) => a.id !== activityId));
+  };
+
   return {
     patient, setPatient,
     periods, setPeriods,
+    activities,
     loading, error,
     fetchMe,
     addPeriod, removePeriod,
     addEvent, removeEvent,
     updatePeriodUrgeData,
+    addActivity, removeActivity,
   };
 }

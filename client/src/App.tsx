@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import PatientStart from './pages/PatientStart';
+import PatientHome from './pages/PatientHome';
 import Timeline from './pages/Timeline';
+import Activities from './pages/Activities';
 import EventMapping from './pages/EventMapping';
 import UrgeAssessment from './pages/UrgeAssessment';
 import Summary from './pages/Summary';
@@ -31,8 +33,14 @@ export default function App() {
         <Route path="/dashboard/login" element={<FacilitatorLogin />} />
 
         {/* Patient protected */}
+        <Route path="/home" element={
+          <PatientGuard><PatientHome /></PatientGuard>
+        } />
         <Route path="/timeline" element={
           <PatientGuard><Timeline /></PatientGuard>
+        } />
+        <Route path="/activities" element={
+          <PatientGuard><Activities /></PatientGuard>
         } />
         <Route path="/timeline/events/:period_id" element={
           <PatientGuard><EventMapping /></PatientGuard>

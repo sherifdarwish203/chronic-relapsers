@@ -77,7 +77,13 @@ router.get('/me', requirePatient, async (req: Request, res: Response): Promise<v
       })
     );
 
-    res.json({ patient, periods });
+    const activitiesResult = await pool.query(
+      `SELECT * FROM activities WHERE patient_id = $1
+       ORDER BY (act_year * 12 + act_month) DESC, COALESCE(act_day, 0) DESC`,
+      [patientId]
+    );
+
+    res.json({ patient, periods, activities: activitiesResult.rows });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'خطأ في الخادم' });

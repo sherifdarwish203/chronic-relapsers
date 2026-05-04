@@ -24,7 +24,7 @@ export default function PatientStart() {
         display_name: displayName.trim(),
       });
       login(res.data.token);
-      navigate('/timeline');
+      navigate('/home');
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error;
       setToast({ message: msg || 'حصل خطأ — حاول تاني', type: 'error' });

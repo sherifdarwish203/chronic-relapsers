@@ -9,6 +9,7 @@ const router = Router();
 router.post('/', requirePatient, async (req: Request, res: Response): Promise<void> => {
   const patientId = req.patient!.patient_id;
   const { type, start_month, start_year, end_month, end_year } = req.body;
+  const start_day = req.body.start_day ? parseInt(req.body.start_day) : null;
   const note = sanitiseText(req.body.note);
   const substances: string[] = Array.isArray(req.body.substances) ? req.body.substances : [];
   const urge_data = (req.body.urge_data && typeof req.body.urge_data === 'object') ? req.body.urge_data : null;
@@ -27,6 +28,24 @@ router.post('/', requirePatient, async (req: Request, res: Response): Promise<vo
     return;
   }
 
+  // Overlap check (skip for فكرة ضرب which is a single-point event)
+  if (type !== 'reduced') {
+    const newStart = Number(start_year) * 12 + Number(start_month);
+    const newEnd = end_month && end_year ? Number(end_year) * 12 + Number(end_month) : 999999;
+    const overlap = await pool.query(
+      `SELECT type FROM periods
+       WHERE patient_id = $1 AND type != 'reduced'
+         AND ($2 <= COALESCE(end_year * 12 + end_month, 999999))
+         AND ($3 >= start_year * 12 + start_month)`,
+      [patientId, newStart, newEnd]
+    );
+    if (overlap.rows.length > 0) {
+      const label = overlap.rows[0].type === 'abstinent' ? 'فترة امتناع' : 'انتكاسة';
+      res.status(422).json({ error: `هذه الفترة تتداخل مع ${label} مسجلة مسبقاً` });
+      return;
+    }
+  }
+
   const duration_months = calcDurationMonths(start_month, start_year, end_month, end_year);
 
   try {
@@ -38,10 +57,10 @@ router.post('/', requirePatient, async (req: Request, res: Response): Promise<vo
     const sort_order = maxOrder.rows[0].max_order + 1;
 
     const result = await pool.query(
-      `INSERT INTO periods (patient_id, type, start_month, start_year, end_month, end_year, duration_months, note, substances, urge_data, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      `INSERT INTO periods (patient_id, type, start_day, start_month, start_year, end_month, end_year, duration_months, note, substances, urge_data, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
-      [patientId, type, start_month, start_year, end_month || null, end_year || null, duration_months, note || null, substances, urge_data, sort_order]
+      [patientId, type, start_day, start_month, start_year, end_month || null, end_year || null, duration_months, note || null, substances, urge_data, sort_order]
     );
 
     res.status(201).json({ period: { ...result.rows[0], events: [] } });
@@ -68,6 +87,7 @@ router.patch('/:id', requirePatient, async (req: Request, res: Response): Promis
 
   const current = existing.rows[0];
   const type = req.body.type || current.type;
+  const start_day = req.body.start_day !== undefined ? (req.body.start_day ? parseInt(req.body.start_day) : null) : current.start_day;
   const start_month = req.body.start_month ?? current.start_month;
   const start_year = req.body.start_year ?? current.start_year;
   const end_month = req.body.end_month !== undefined ? req.body.end_month : current.end_month;
@@ -86,15 +106,33 @@ router.patch('/:id', requirePatient, async (req: Request, res: Response): Promis
     return;
   }
 
+  // Overlap check (skip for فكرة ضرب; exclude self)
+  if (type !== 'reduced') {
+    const newStart = Number(start_year) * 12 + Number(start_month);
+    const newEnd = end_month && end_year ? Number(end_year) * 12 + Number(end_month) : 999999;
+    const overlap = await pool.query(
+      `SELECT type FROM periods
+       WHERE patient_id = $1 AND type != 'reduced' AND id != $2
+         AND ($3 <= COALESCE(end_year * 12 + end_month, 999999))
+         AND ($4 >= start_year * 12 + start_month)`,
+      [patientId, periodId, newStart, newEnd]
+    );
+    if (overlap.rows.length > 0) {
+      const label = overlap.rows[0].type === 'abstinent' ? 'فترة امتناع' : 'انتكاسة';
+      res.status(422).json({ error: `هذه الفترة تتداخل مع ${label} مسجلة مسبقاً` });
+      return;
+    }
+  }
+
   const duration_months = calcDurationMonths(start_month, start_year, end_month, end_year);
 
   try {
     const result = await pool.query(
-      `UPDATE periods SET type=$1, start_month=$2, start_year=$3, end_month=$4, end_year=$5,
-       duration_months=$6, note=$7, substances=$8, urge_data=$9
-       WHERE id=$10 AND patient_id=$11
+      `UPDATE periods SET type=$1, start_day=$2, start_month=$3, start_year=$4, end_month=$5, end_year=$6,
+       duration_months=$7, note=$8, substances=$9, urge_data=$10
+       WHERE id=$11 AND patient_id=$12
        RETURNING *`,
-      [type, start_month, start_year, end_month || null, end_year || null, duration_months, note, substances, urge_data, periodId, patientId]
+      [type, start_day, start_month, start_year, end_month || null, end_year || null, duration_months, note, substances, urge_data, periodId, patientId]
     );
 
     const events = await pool.query('SELECT * FROM events WHERE period_id = $1', [periodId]);
