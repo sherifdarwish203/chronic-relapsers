@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { usePatient, Period } from '../hooks/usePatient';
+import { useAutoExpandTextarea } from '../hooks/useAutoExpandTextarea';
 import PeriodCard from '../components/PeriodCard';
 import Toast from '../components/Toast';
 import { ARABIC_MONTHS, SUBSTANCES } from '../constants/presets';
@@ -31,6 +32,7 @@ const NOTE_PLACEHOLDERS: Record<string, string> = {
 export default function Timeline() {
   const navigate = useNavigate();
   const { patient, periods, loading, fetchMe, addPeriod, removePeriod } = usePatient();
+  const noteRef = useAutoExpandTextarea(); // Dedicated ref for note textarea
 
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -136,26 +138,26 @@ export default function Timeline() {
   const monthOptions = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: ARABIC_MONTHS[i + 1] }));
 
   return (
-    <div className="min-h-screen flex justify-center p-4 pt-6">
+    <div className="min-h-screen bg-gray-50 flex justify-center p-4 pt-6 pb-6">
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
 
       <div className="w-full max-w-[520px]">
         {/* Header */}
-        <div className="flex items-center mb-2">
-          <button onClick={() => navigate('/home')} className="text-gray-500 hover:text-gray-700 ml-3">
+        <div className="flex items-center justify-center mb-2 gap-3">
+          <button onClick={() => navigate('/home')} className="text-gray-500 hover:text-gray-700 p-2 -ml-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <h2 className="flex-1 text-center text-xl font-medium text-gray-800">الجدول الزمني</h2>
-          <div className="w-8" />
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">الجدول الزمني</h2>
+          <div className="w-10" />
         </div>
         {patient && (
-          <p className="text-center text-sm text-gray-500 mb-4">{patient.display_name}</p>
+          <p className="text-center text-xs sm:text-sm text-gray-500 mb-4">{patient.display_name}</p>
         )}
 
         {/* Legend */}
-        <div className="flex items-center justify-center gap-4 mb-4 text-xs text-gray-600">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mb-4 text-[11px] sm:text-xs text-gray-600">
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" />فترة امتناع</span>
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />انتكاسة</span>
           <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" />فكرة ضرب</span>
@@ -181,8 +183,8 @@ export default function Timeline() {
             + إضافة فترة
           </button>
         ) : (
-          <div className="card space-y-4 mb-4">
-            <h3 className="font-semibold text-gray-800">إضافة فترة جديدة</h3>
+          <div className="bg-white rounded-lg shadow-sm p-4 space-y-4 mb-4">
+            <h3 className="font-semibold text-base sm:text-lg text-gray-800">إضافة فترة جديدة</h3>
 
             {/* Type */}
             <div>
@@ -321,11 +323,11 @@ export default function Timeline() {
                 {NOTE_LABELS[type]}
               </label>
               <textarea
+                ref={noteRef}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder={NOTE_PLACEHOLDERS[type]}
-                rows={3}
-                className="input-base h-auto py-2 resize-none"
+                className="input-base py-2 resize-none textarea-auto-expand"
               />
             </div>
 
@@ -349,7 +351,7 @@ export default function Timeline() {
         )}
 
         {/* Bottom navigation */}
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 space-y-3 pb-6">
           <button
             onClick={() => navigate('/summary')}
             disabled={periods.length === 0}

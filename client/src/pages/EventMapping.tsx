@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/client';
 import { usePatient, Event } from '../hooks/usePatient';
+import { useAutoExpandTextarea } from '../hooks/useAutoExpandTextarea';
 import StepDots from '../components/StepDots';
 import EventCard from '../components/EventCard';
 import TriggerTags from '../components/TriggerTags';
@@ -14,6 +15,7 @@ export default function EventMapping() {
   const { period_id } = useParams<{ period_id: string }>();
   const navigate = useNavigate();
   const { periods, fetchMe, addEvent, removeEvent } = usePatient();
+  const descriptionRef = useAutoExpandTextarea(); // Dedicated ref for description textarea
 
   const [step, setStep] = useState(1);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -91,26 +93,26 @@ export default function EventMapping() {
   const periodEvents = currentPeriod?.events || [];
 
   return (
-    <div className="min-h-screen flex justify-center p-4 pt-6">
+    <div className="min-h-screen flex justify-center p-4 pt-6 bg-gray-50">
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
 
-      <div className="w-full max-w-[520px]">
+      <div className="w-full max-w-[520px] pb-6">
         {/* Header */}
-        <div className="flex items-center mb-1">
-          <button onClick={() => navigate('/timeline')} className="text-gray-500 hover:text-gray-700 ml-3">
+        <div className="flex items-center justify-center mb-2 gap-3">
+          <button onClick={() => navigate('/timeline')} className="text-gray-500 hover:text-gray-700 p-2 -ml-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <h2 className="flex-1 text-center text-xl font-medium text-gray-800">قبل الانتكاسة</h2>
-          <div className="w-8" />
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">قبل الانتكاسة</h2>
+          <div className="w-10" />
         </div>
-        <p className="text-center text-sm text-gray-500 mb-4">{periodTitle}</p>
+        <p className="text-center text-xs sm:text-sm text-gray-500 mb-4">{periodTitle}</p>
 
         {/* Previously recorded events */}
         {periodEvents.length > 0 && (
-          <div className="card mb-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 mb-4">
+            <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-3">
               الأحداث المسجلة ({periodEvents.length})
             </h4>
             <div className="space-y-2">
@@ -125,23 +127,23 @@ export default function EventMapping() {
         <StepDots total={5} current={step} />
 
         {/* Step card */}
-        <div className="card">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 mb-6 pb-6">
 
           {/* STEP 1 */}
           {step === 1 && (
             <div>
-              <h3 className="font-bold text-gray-800 mb-1">إيه اللي كان بيحصل؟</h3>
-              <p className="text-sm text-gray-500 mb-3">فكر في الفترة اللي سبقت الانتكاسة...</p>
+              <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">إيه اللي كان بيحصل؟</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mb-3">فكر في الفترة اللي سبقت الانتكاسة...</p>
               <textarea
+                ref={descriptionRef}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="اكتب بحرية..."
-                rows={4}
-                className="input-base h-auto py-2 resize-none mb-3"
+                className="input-base textarea-auto-expand text-xs sm:text-sm mb-3"
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ده كان قبلها بـ...</label>
-                <select value={timeframe} onChange={(e) => setTimeframe(e.target.value)} className="input-base">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">ده كان قبلها بـ...</label>
+                <select value={timeframe} onChange={(e) => setTimeframe(e.target.value)} className="input-base text-xs sm:text-sm">
                   <option value="same_day">نفس اليوم</option>
                   <option value="days">أيام قبلها</option>
                   <option value="weeks">أسابيع قبلها</option>
@@ -152,7 +154,7 @@ export default function EventMapping() {
                 <button
                   onClick={() => setStep(2)}
                   disabled={!description.trim()}
-                  className="btn-primary"
+                  className="btn-primary py-2 sm:py-3 text-xs sm:text-sm"
                 >
                   التالي ←
                 </button>
@@ -163,12 +165,12 @@ export default function EventMapping() {
           {/* STEP 2 */}
           {step === 2 && (
             <div>
-              <h3 className="font-bold text-gray-800 mb-1">كنت حاسس بإيه؟</h3>
-              <p className="text-sm text-gray-500 mb-3">اختر كل المشاعر اللي كانت موجودة</p>
+              <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">كنت حاسس بإيه؟</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mb-3">اختر كل المشاعر اللي كانت موجودة</p>
               <TriggerTags options={FEELINGS} selected={feelings} onChange={setFeelings} colorScheme="blue" />
               <div className="mt-4 flex gap-2">
-                <button onClick={() => setStep(1)} className="btn-secondary flex-1">← رجوع</button>
-                <button onClick={() => setStep(3)} className="btn-primary flex-1">التالي ←</button>
+                <button onClick={() => setStep(1)} className="btn-secondary flex-1 py-2 sm:py-3 text-xs sm:text-sm">← رجوع</button>
+                <button onClick={() => setStep(3)} className="btn-primary flex-1 py-2 sm:py-3 text-xs sm:text-sm">التالي ←</button>
               </div>
             </div>
           )}
@@ -176,12 +178,12 @@ export default function EventMapping() {
           {/* STEP 3 */}
           {step === 3 && (
             <div>
-              <h3 className="font-bold text-amber-700 mb-1">أسباب خارجية؟</h3>
-              <p className="text-sm text-gray-500 mb-3">أحداث أو مواقف من الحياة</p>
+              <h3 className="font-bold text-sm sm:text-base text-amber-700 mb-2">أسباب خارجية؟</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mb-3">أحداث أو مواقف من الحياة</p>
               <TriggerTags options={EXTERNAL_TRIGGERS} selected={externalTriggers} onChange={setExternalTriggers} colorScheme="amber" />
               <div className="mt-4 flex gap-2">
-                <button onClick={() => setStep(2)} className="btn-secondary flex-1">← رجوع</button>
-                <button onClick={() => setStep(4)} className="btn-primary flex-1">التالي ←</button>
+                <button onClick={() => setStep(2)} className="btn-secondary flex-1 py-2 sm:py-3 text-xs sm:text-sm">← رجوع</button>
+                <button onClick={() => setStep(4)} className="btn-primary flex-1 py-2 sm:py-3 text-xs sm:text-sm">التالي ←</button>
               </div>
             </div>
           )}
@@ -189,12 +191,12 @@ export default function EventMapping() {
           {/* STEP 4 */}
           {step === 4 && (
             <div>
-              <h3 className="font-bold text-blue-700 mb-1">أسباب داخلية؟</h3>
-              <p className="text-sm text-gray-500 mb-3">أفكار أو أحاسيس من جوّاك</p>
+              <h3 className="font-bold text-sm sm:text-base text-blue-700 mb-2">أسباب داخلية؟</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mb-3">أفكار أو أحاسيس من جوّاك</p>
               <TriggerTags options={INTERNAL_TRIGGERS} selected={internalTriggers} onChange={setInternalTriggers} colorScheme="blue" />
               <div className="mt-4 flex gap-2">
-                <button onClick={() => setStep(3)} className="btn-secondary flex-1">← رجوع</button>
-                <button onClick={() => setStep(5)} className="btn-primary flex-1">التالي ←</button>
+                <button onClick={() => setStep(3)} className="btn-secondary flex-1 py-2 sm:py-3 text-xs sm:text-sm">← رجوع</button>
+                <button onClick={() => setStep(5)} className="btn-primary flex-1 py-2 sm:py-3 text-xs sm:text-sm">التالي ←</button>
               </div>
             </div>
           )}
@@ -202,14 +204,14 @@ export default function EventMapping() {
           {/* STEP 5 */}
           {step === 5 && (
             <div>
-              <h3 className="font-bold text-gray-800 mb-3">ما هو السبب الرئيسي؟</h3>
+              <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-3">ما هو السبب الرئيسي؟</h3>
               <div className="space-y-2 mb-5">
                 {Object.entries(CLASSIFICATIONS).map(([val, label]) => (
                   <button
                     key={val}
                     type="button"
                     onClick={() => setClassification(val)}
-                    className={`w-full text-right p-3 rounded-xl border transition text-sm
+                    className={`w-full text-right p-3 sm:p-4 rounded-xl border transition text-xs sm:text-sm
                       ${classification === val
                         ? 'bg-[#DCFCE7] border-primary text-green-700 font-medium'
                         : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
@@ -220,14 +222,14 @@ export default function EventMapping() {
                 ))}
               </div>
 
-              <h4 className="font-medium text-gray-700 mb-2">هل حسيت إنها جاية؟</h4>
+              <h4 className="font-medium text-xs sm:text-sm text-gray-700 mb-3">هل حسيت إنها جاية؟</h4>
               <div className="flex gap-2 mb-5">
                 {Object.entries(SAW_IT_COMING).map(([val, label]) => (
                   <button
                     key={val}
                     type="button"
                     onClick={() => setSawItComing(val)}
-                    className={`flex-1 p-2 rounded-xl border text-sm transition
+                    className={`flex-1 p-2 sm:p-3 rounded-xl border text-xs sm:text-sm transition
                       ${sawItComing === val
                         ? 'bg-[#DCFCE7] border-primary text-green-700 font-medium'
                         : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
@@ -239,11 +241,11 @@ export default function EventMapping() {
               </div>
 
               <div className="flex gap-2">
-                <button onClick={() => setStep(4)} className="btn-secondary flex-1">← رجوع</button>
+                <button onClick={() => setStep(4)} className="btn-secondary flex-1 py-2 sm:py-3 text-xs sm:text-sm">← رجوع</button>
                 <button
                   onClick={handleSaveEvent}
                   disabled={!classification || submitting}
-                  className="btn-primary flex-1"
+                  className="btn-primary flex-1 py-2 sm:py-3 text-xs sm:text-sm"
                 >
                   {submitting ? '...' : 'حفظ الحدث ✓'}
                 </button>
@@ -254,7 +256,7 @@ export default function EventMapping() {
 
         {/* Back to timeline */}
         <div className="mt-4">
-          <button onClick={() => navigate('/timeline')} className="btn-secondary w-full">
+          <button onClick={() => navigate('/timeline')} className="btn-secondary w-full py-2 sm:py-3 text-xs sm:text-sm">
             ← العودة للجدول
           </button>
         </div>

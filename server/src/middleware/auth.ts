@@ -49,18 +49,18 @@ export function requirePatient(req: Request, res: Response, next: NextFunction):
 export function requireFacilitator(req: Request, res: Response, next: NextFunction): void {
   const token = extractToken(req);
   if (!token) {
-    res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: 'غير مصرح — تسجيل الدخول مطلوب' });
     return;
   }
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET!) as FacilitatorPayload;
     if (payload.role !== 'facilitator') {
-      res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'غير مصرح' });
       return;
     }
     req.facilitator = payload;
     next();
   } catch {
-    res.status(401).json({ error: 'Invalid or expired token' });
+    res.status(401).json({ error: 'رمز المصادقة غير صالح أو منتهي' });
   }
 }
