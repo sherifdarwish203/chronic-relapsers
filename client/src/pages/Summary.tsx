@@ -62,62 +62,62 @@ export default function Summary() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center p-4 pt-6">
-      <div className="w-full max-w-[520px] print-full">
+    <div className="min-h-screen flex justify-center p-4 pt-6 bg-gray-50">
+      <div className="w-full max-w-[520px] print-full pb-6">
 
         {/* Header */}
-        <div className="flex items-center mb-2 no-print">
-          <button onClick={() => navigate('/timeline')} className="text-gray-500 hover:text-gray-700 ml-3">
+        <div className="flex items-center justify-center mb-2 gap-3 no-print">
+          <button onClick={() => navigate('/timeline')} className="text-gray-500 hover:text-gray-700 p-2 -ml-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <h2 className="flex-1 text-center text-xl font-medium text-gray-800">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">
             {patient?.display_name || 'ملخصك'}
           </h2>
-          <div className="w-8" />
+          <div className="w-10" />
         </div>
         {patient && (
-          <p className="text-center text-xs text-gray-400 mb-4 no-print">كود: {patient.code}</p>
+          <p className="text-center text-xs sm:text-sm text-gray-400 mb-4 no-print">كود: {patient.code}</p>
         )}
 
         {/* Print header (hidden on screen) */}
         <div className="hidden print:block mb-4">
-          <h1 className="text-lg font-bold">رحلة التعافي — {patient?.display_name}</h1>
-          <p className="text-sm text-gray-600">كود: {patient?.code} | التاريخ: {new Date().toLocaleDateString('ar-EG')}</p>
+          <h1 className="text-lg sm:text-xl font-bold">رحلة التعافي — {patient?.display_name}</h1>
+          <p className="text-xs sm:text-sm text-gray-600">كود: {patient?.code} | التاريخ: {new Date().toLocaleDateString('ar-EG')}</p>
         </div>
 
         {/* Section A: Stats */}
-        <div className={`grid gap-3 mb-4 ${urgePeriods.length > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-          <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-green-700">{abstinencePeriods.length}</p>
-            <p className="text-xs text-green-600 mt-1">فترات امتناع</p>
+        <div className={`grid gap-2 sm:gap-3 mb-4 ${urgePeriods.length > 0 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
+            <p className="text-xl sm:text-2xl font-bold text-green-700">{abstinencePeriods.length}</p>
+            <p className="text-xs sm:text-sm text-green-600 mt-1">فترات امتناع</p>
           </div>
-          <div className="bg-[#FEF2F2] border border-[#FCA5A5] rounded-xl p-4 text-center">
-            <p className="text-2xl font-bold text-red-700">{relapsePeriods.length}</p>
-            <p className="text-xs text-red-600 mt-1">انتكاسات</p>
+          <div className="bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
+            <p className="text-xl sm:text-2xl font-bold text-red-700">{relapsePeriods.length}</p>
+            <p className="text-xs sm:text-sm text-red-600 mt-1">انتكاسات</p>
           </div>
           {urgePeriods.length > 0 && (
-            <div className="bg-[#FFFBEB] border border-[#FCD34D] rounded-xl p-4 text-center">
-              <p className="text-2xl font-bold text-amber-700">{urgePeriods.length}</p>
-              <p className="text-xs text-amber-600 mt-1">فكرة ضرب</p>
+            <div className="bg-[#FFFBEB] border border-[#FCD34D] rounded-lg sm:rounded-xl p-3 sm:p-4 text-center">
+              <p className="text-xl sm:text-2xl font-bold text-amber-700">{urgePeriods.length}</p>
+              <p className="text-xs sm:text-sm text-amber-600 mt-1">فكرة ضرب</p>
             </div>
           )}
         </div>
 
         {/* Section B: Longest abstinence */}
         {longestAbstinence > 0 && (
-          <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-xl p-4 mb-4 text-center">
-            <p className="text-xs text-green-600 mb-1">أطول فترة امتناع</p>
-            <p className="text-2xl font-bold text-green-700">{formatDurationAr(longestAbstinence)}</p>
+          <div className="bg-[#F0FDF4] border border-[#86EFAC] rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 text-center">
+            <p className="text-xs sm:text-sm text-green-600 mb-1">أطول فترة امتناع</p>
+            <p className="text-xl sm:text-2xl font-bold text-green-700">{formatDurationAr(longestAbstinence)}</p>
           </div>
         )}
 
         {/* Section C: Timeline */}
-        <div className="card mb-4">
-          <h3 className="font-semibold text-gray-800 mb-4">الجدول الزمني</h3>
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 mb-4">
+          <h3 className="font-semibold text-sm sm:text-base text-gray-800 mb-4">الجدول الزمني</h3>
           {periods.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center">لا توجد فترات مسجلة</p>
+            <p className="text-xs sm:text-sm text-gray-400 text-center">لا توجد فترات مسجلة</p>
           ) : (
             <SummarySection periods={sortedPeriods} />
           )}
@@ -125,20 +125,20 @@ export default function Summary() {
 
         {/* Section D: Personal pattern */}
         {allEvents.length > 0 && (
-          <div className="card mb-4 page-break">
-            <h3 className="font-semibold text-gray-800 mb-3">نمطك الشخصي</h3>
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 mb-4 page-break">
+            <h3 className="font-semibold text-sm sm:text-base text-gray-800 mb-4">نمطك الشخصي</h3>
 
             {/* Classification counts */}
-            <div className="grid grid-cols-3 gap-2 mb-4 text-center text-sm">
-              <div className="bg-blue-50 rounded-lg p-2">
+            <div className="grid grid-cols-3 gap-2 mb-4 text-center text-xs sm:text-sm">
+              <div className="bg-blue-50 rounded-lg p-2 sm:p-3">
                 <p className="font-bold text-blue-700">{classificationCounts.i}</p>
                 <p className="text-xs text-blue-600">داخلي</p>
               </div>
-              <div className="bg-amber-50 rounded-lg p-2">
+              <div className="bg-amber-50 rounded-lg p-2 sm:p-3">
                 <p className="font-bold text-amber-700">{classificationCounts.x}</p>
                 <p className="text-xs text-amber-600">خارجي</p>
               </div>
-              <div className="bg-green-50 rounded-lg p-2">
+              <div className="bg-green-50 rounded-lg p-2 sm:p-3">
                 <p className="font-bold text-green-700">{classificationCounts.b}</p>
                 <p className="text-xs text-green-600">الاثنان</p>
               </div>
@@ -147,7 +147,7 @@ export default function Summary() {
             {/* Top feelings */}
             {topFeelings.length > 0 && (
               <div className="mb-3">
-                <p className="text-xs font-medium text-gray-600 mb-1">أكثر المشاعر تكراراً</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">أكثر المشاعر تكراراً</p>
                 <div className="flex flex-wrap gap-1">
                   {topFeelings.map(([name, count]) => (
                     <span key={name} className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs">
@@ -161,7 +161,7 @@ export default function Summary() {
             {/* Top external */}
             {topExt.length > 0 && (
               <div className="mb-3">
-                <p className="text-xs font-medium text-gray-600 mb-1">أكثر الأسباب الخارجية</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">أكثر الأسباب الخارجية</p>
                 <div className="flex flex-wrap gap-1">
                   {topExt.map(([name, count]) => (
                     <span key={name} className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs">
@@ -175,7 +175,7 @@ export default function Summary() {
             {/* Top internal */}
             {topInt.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-gray-600 mb-1">أكثر الأسباب الداخلية</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 mb-2">أكثر الأسباب الداخلية</p>
                 <div className="flex flex-wrap gap-1">
                   {topInt.map(([name, count]) => (
                     <span key={name} className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs">
@@ -190,24 +190,24 @@ export default function Summary() {
 
         {/* Section E: Last updated */}
         {lastUpdated && (
-          <p className="text-center text-xs text-gray-400 mb-6">آخر تحديث: {lastUpdated}</p>
+          <p className="text-center text-xs sm:text-sm text-gray-400 mb-6">آخر تحديث: {lastUpdated}</p>
         )}
 
         {/* Buttons */}
-        <div className="space-y-3 no-print">
-          <button onClick={handlePrint} className="btn-primary w-full">
+        <div className="space-y-2 sm:space-y-3 no-print">
+          <button onClick={handlePrint} className="btn-primary w-full py-2 sm:py-3 text-xs sm:text-sm">
             طباعة / تحميل PDF
           </button>
-          <button onClick={() => navigate('/timeline')} className="btn-secondary w-full">
+          <button onClick={() => navigate('/timeline')} className="btn-secondary w-full py-2 sm:py-3 text-xs sm:text-sm">
             ← تعديل الجدول
           </button>
-          <button onClick={handleGoHome} className="btn-secondary w-full text-gray-500">
+          <button onClick={handleGoHome} className="btn-secondary w-full py-2 sm:py-3 text-xs sm:text-sm text-gray-500">
             الصفحة الرئيسية
           </button>
         </div>
 
         {/* Print footer */}
-        <div className="hidden print:block mt-8 text-center text-xs text-gray-500 border-t pt-4">
+        <div className="hidden print:block mt-8 text-center text-xs sm:text-sm text-gray-500 border-t pt-4">
           Recovery Center for Psychiatry & Addiction — Alexandria, Egypt
         </div>
       </div>

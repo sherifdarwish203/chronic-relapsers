@@ -2,16 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Client (Vite)",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:client"],
-      "port": 5173
-    },
-    {
-      "name": "Server (Express)",
+      "name": "Backend Server",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:server"],
       "port": 3000
+    },
+    {
+      "name": "Frontend Dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:client"],
+      "port": 5173
     }
   ]
 }

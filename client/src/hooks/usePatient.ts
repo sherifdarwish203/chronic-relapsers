@@ -13,6 +13,64 @@ export interface Activity {
   created_at: string;
 }
 
+export interface Tool {
+  id: number;
+  patient_id: number;
+  tool_type: 'twenty_reasons' | 'black_pictures' | 'daily_planner' | 'safety_map' | 'personal_triangle' | 'program_principles' | 'personality_problems' | 'decision_matrix';
+  created_at: string;
+  updated_at: string;
+  shared_with_therapist: boolean;
+  shared_at: string | null;
+}
+
+export interface SafeMapTrigger {
+  id: number;
+  tool_id: number;
+  category: 'people' | 'places' | 'situations' | 'habits' | 'instruments' | 'emotions' | 'thoughts';
+  trigger_name: string;
+  trigger_description: string | null;
+  risk_score: number;
+  risk_level: 'low' | 'medium' | 'high' | 'critical';
+  notes: string | null;
+  category_data: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TwentyReason {
+  id: number;
+  tool_id: number;
+  reason_number: number;
+  reason_text: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BlackPicture {
+  id: number;
+  tool_id: number;
+  story_number: number;
+  story_title: string | null;
+  story_text: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DailyPlannerActivity {
+  id: number;
+  tool_id: number;
+  plan_date: string;
+  hour: number;
+  activity_description: string | null;
+  risk_level: 'low' | 'high';
+  location: string | null;
+  with_whom: string | null;
+  exact_time: string | null;
+  safety_plan: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Event {
   id: number;
   period_id: number;
@@ -55,6 +113,77 @@ export interface Period {
   events: Event[];
 }
 
+export interface PersonalTriangleMessage {
+  id: number;
+  tool_id: number;
+  from_persona: 'victim' | 'abuser' | 'bystander';
+  to_persona: 'victim' | 'abuser' | 'bystander';
+  message_text: string;
+  position_order: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AbusserThoughtJournalEntry {
+  id: number;
+  tool_id: number;
+  journal_date: string;
+  abuser_thought: string;
+  intensity: number;
+  victim_response: string | null;
+  bystander_analysis: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PrincipleExample {
+  id: number;
+  principle_id: number;
+  example_text: string;
+  example_date: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface ProgramPrinciple {
+  id: number;
+  tool_id: number;
+  principle_name: string;
+  principle_description: string;
+  examples: PrincipleExample[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PersonalityProblemExample {
+  id: number;
+  problem_id: number;
+  example_text: string;
+  example_date: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface PersonalityProblem {
+  id: number;
+  tool_id: number;
+  problem_name: string;
+  problem_description: string;
+  examples: PersonalityProblemExample[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DecisionMatrixItem {
+  id: number;
+  tool_id: number;
+  category: 'pros_using' | 'cons_using' | 'pros_abstinent' | 'cons_abstinent';
+  item_text: string;
+  position_order: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Patient {
   id: number;
   code: string;
@@ -68,6 +197,7 @@ export function usePatient() {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [periods, setPeriods] = useState<Period[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,6 +209,15 @@ export function usePatient() {
       setPatient(res.data.patient);
       setPeriods(res.data.periods);
       setActivities(res.data.activities || []);
+
+      // Fetch tools separately
+      try {
+        const toolsRes = await api.get('/tools');
+        setTools(toolsRes.data.tools || []);
+      } catch {
+        // Tools might not exist yet — that's okay
+        setTools([]);
+      }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || 'خطأ في تحميل البيانات';
       setError(msg);
@@ -137,15 +276,31 @@ export function usePatient() {
     setActivities((prev) => prev.filter((a) => a.id !== activityId));
   };
 
+  const addTool = (tool: Tool) => {
+    setTools((prev) => [tool, ...prev]);
+  };
+
+  const updateTool = (toolId: number, updates: Partial<Tool>) => {
+    setTools((prev) =>
+      prev.map((t) => (t.id === toolId ? { ...t, ...updates } : t))
+    );
+  };
+
+  const removeTool = (toolId: number) => {
+    setTools((prev) => prev.filter((t) => t.id !== toolId));
+  };
+
   return {
     patient, setPatient,
     periods, setPeriods,
     activities,
+    tools,
     loading, error,
     fetchMe,
     addPeriod, removePeriod,
     addEvent, removeEvent,
     updatePeriodUrgeData,
     addActivity, removeActivity,
+    addTool, updateTool, removeTool,
   };
 }

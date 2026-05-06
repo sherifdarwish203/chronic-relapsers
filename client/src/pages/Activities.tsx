@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { usePatient, Activity } from '../hooks/usePatient';
+import { useAutoExpandTextarea } from '../hooks/useAutoExpandTextarea';
 import Toast from '../components/Toast';
 import { ACTIVITY_TYPE_OPTIONS, ACTIVITY_TYPES, ARABIC_MONTHS } from '../constants/presets';
 import { getYearOptions } from '../utils/dates';
@@ -29,6 +30,7 @@ export default function Activities() {
   const [actYear, setActYear] = useState('');
   const [therapist, setTherapist] = useState('');
   const [summary, setSummary] = useState('');
+  const summaryRef = useAutoExpandTextarea();
 
   useEffect(() => {
     fetchMe();
@@ -88,53 +90,53 @@ export default function Activities() {
   const showTherapistField = type === 'individual' || type === 'group';
 
   return (
-    <div className="min-h-screen flex justify-center p-4 pt-6">
+    <div className="min-h-screen flex justify-center p-4 pt-6 bg-gray-50">
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />}
 
       <div className="w-full max-w-[520px]">
         {/* Header */}
-        <div className="flex items-center mb-4">
-          <button onClick={() => navigate('/home')} className="text-gray-500 hover:text-gray-700 ml-3">
+        <div className="flex items-center justify-center mb-6 gap-3">
+          <button onClick={() => navigate('/home')} className="text-gray-500 hover:text-gray-700 p-2 -ml-2">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
-          <h2 className="flex-1 text-center text-xl font-medium text-gray-800">الأنشطة العلاجية</h2>
-          <div className="w-8" />
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800">الأنشطة العلاجية</h2>
+          <div className="w-10" />
         </div>
 
         {/* Activity list */}
         {loading ? (
-          <div className="text-center text-gray-400 py-8">جاري التحميل...</div>
+          <div className="text-center text-gray-400 py-8 text-sm sm:text-base">جاري التحميل...</div>
         ) : (
           <div className="space-y-3 mb-4">
             {activities.length === 0 && !showForm && (
-              <p className="text-center text-gray-400 text-sm py-6">
+              <p className="text-center text-gray-400 text-xs sm:text-sm py-6">
                 لم يتم تسجيل أي نشاط بعد
               </p>
             )}
             {activities.map((activity) => {
               const cfg = TYPE_CONFIG[activity.type] || TYPE_CONFIG.individual;
               return (
-                <div key={activity.id} className={`${cfg.bg} border ${cfg.border} rounded-xl p-4`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={`font-semibold text-sm ${cfg.text}`}>
+                <div key={activity.id} className={`${cfg.bg} border ${cfg.border} rounded-lg sm:rounded-xl p-3 sm:p-4 active:shadow-lg transition`}>
+                  <div className="flex items-center justify-between mb-1 gap-2">
+                    <span className={`font-semibold text-xs sm:text-sm ${cfg.text}`}>
                       {ACTIVITY_TYPES[activity.type]}
                     </span>
-                    <span className="text-xs text-gray-500">{formatActivityDate(activity)}</span>
+                    <span className="text-xs text-gray-500 flex-shrink-0">{formatActivityDate(activity)}</span>
                   </div>
                   {activity.therapist && (
                     <p className="text-xs text-gray-600 mb-1">المعالج: {activity.therapist}</p>
                   )}
                   {activity.summary && (
-                    <blockquote className={`border-r-4 ${cfg.border} pr-3 italic text-sm text-gray-700 mb-2`}>
+                    <blockquote className={`border-r-4 ${cfg.border} pr-3 italic text-xs sm:text-sm text-gray-700 mb-2 break-words`}>
                       "{activity.summary}"
                     </blockquote>
                   )}
                   <div className="flex justify-end">
                     <button
                       onClick={() => handleDelete(activity.id)}
-                      className="btn-danger text-xs"
+                      className="btn-danger text-xs py-1 sm:py-2"
                     >
                       حذف
                     </button>
@@ -149,18 +151,18 @@ export default function Activities() {
         {!showForm ? (
           <button
             onClick={() => setShowForm(true)}
-            className="w-full border-2 border-dashed border-gray-300 rounded-xl py-4 text-sm text-gray-500 hover:border-blue-400 hover:text-blue-500 transition"
+            className="w-full border-2 border-dashed border-gray-300 rounded-lg sm:rounded-xl py-4 text-xs sm:text-sm text-gray-500 hover:border-blue-400 hover:text-blue-500 transition"
           >
             + إضافة نشاط علاجي
           </button>
         ) : (
-          <div className="card space-y-4 mb-4">
-            <h3 className="font-semibold text-gray-800">تسجيل نشاط جديد</h3>
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-5 space-y-4 mb-6 pb-6">
+            <h3 className="font-semibold text-sm sm:text-base text-gray-800">تسجيل نشاط جديد</h3>
 
             {/* Type */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">نوع النشاط</label>
-              <select value={type} onChange={(e) => setType(e.target.value)} className="input-base">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">نوع النشاط</label>
+              <select value={type} onChange={(e) => setType(e.target.value)} className="input-base text-xs sm:text-sm">
                 {ACTIVITY_TYPE_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
@@ -169,21 +171,21 @@ export default function Activities() {
 
             {/* Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">تاريخ النشاط</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">تاريخ النشاط</label>
               <div className="grid grid-cols-3 gap-2">
-                <select value={actDay} onChange={(e) => setActDay(e.target.value)} className="input-base">
+                <select value={actDay} onChange={(e) => setActDay(e.target.value)} className="input-base text-xs sm:text-sm">
                   <option value="">اليوم</option>
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                     <option key={d} value={d}>{d}</option>
                   ))}
                 </select>
-                <select value={actMonth} onChange={(e) => setActMonth(e.target.value)} className="input-base">
+                <select value={actMonth} onChange={(e) => setActMonth(e.target.value)} className="input-base text-xs sm:text-sm">
                   <option value="">الشهر</option>
                   {monthOptions.map((m) => (
                     <option key={m.value} value={m.value}>{m.label}</option>
                   ))}
                 </select>
-                <select value={actYear} onChange={(e) => setActYear(e.target.value)} className="input-base">
+                <select value={actYear} onChange={(e) => setActYear(e.target.value)} className="input-base text-xs sm:text-sm">
                   <option value="">السنة</option>
                   {years.map((y) => (
                     <option key={y} value={y}>{y}</option>
@@ -195,7 +197,7 @@ export default function Activities() {
             {/* Therapist — shown for individual + group */}
             {showTherapistField && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                   اسم المعالج <span className="text-gray-400 font-normal">(اختياري)</span>
                 </label>
                 <input
@@ -203,29 +205,29 @@ export default function Activities() {
                   value={therapist}
                   onChange={(e) => setTherapist(e.target.value)}
                   placeholder="مثلاً: د. أحمد"
-                  className="input-base"
+                  className="input-base text-xs sm:text-sm"
                 />
               </div>
             )}
 
             {/* Summary */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 ملخص النشاط <span className="text-gray-400 font-normal">(اختياري)</span>
               </label>
               <textarea
+                ref={summaryRef}
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
                 placeholder="مثلاً: تكلمنا عن المحفزات وكيف أتعامل معها..."
-                rows={3}
-                className="input-base h-auto py-2 resize-none"
+                className="input-base textarea-auto-expand text-xs sm:text-sm"
               />
             </div>
 
             {/* Buttons */}
             <div className="flex gap-2">
-              <button onClick={resetForm} className="btn-secondary flex-1">إلغاء</button>
-              <button onClick={handleAdd} disabled={!canSubmit} className="btn-primary flex-1">
+              <button onClick={resetForm} className="btn-secondary flex-1 py-2 sm:py-3 text-xs sm:text-sm">إلغاء</button>
+              <button onClick={handleAdd} disabled={!canSubmit} className="btn-primary flex-1 py-2 sm:py-3 text-xs sm:text-sm">
                 {submitting ? '...' : 'إضافة ✓'}
               </button>
             </div>

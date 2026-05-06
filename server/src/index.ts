@@ -11,6 +11,7 @@ import eventRoutes from './routes/events';
 import eventsDirectRoutes from './routes/eventsDirect';
 import facilitatorRoutes from './routes/facilitators';
 import activityRoutes from './routes/activities';
+import toolRoutes from './routes/tools';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +42,7 @@ app.use('/api/v1/periods', eventRoutes);       // POST /periods/:period_id/event
 app.use('/api/v1/events', eventsDirectRoutes); // DELETE /events/:id
 app.use('/api/v1/facilitators', facilitatorRoutes);
 app.use('/api/v1/activities', activityRoutes);
+app.use('/api/v1/tools', toolRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {

@@ -15,9 +15,7 @@ body {
 /* ── Input base ── */
 .input-base {
   width: 100%;
-  height: 48px;
-  padding-left: 0.75rem;
-  padding-right: 0.75rem;
+  padding: 0.75rem;
   border: 1px solid #D1D5DB;
   border-radius: 0.5rem;
   text-align: right;
@@ -26,6 +24,7 @@ body {
   background: white;
   transition: border-color 0.15s, box-shadow 0.15s;
   font-family: inherit;
+  min-height: 48px;
 }
 .input-base:focus {
   border-color: #16A34A;
@@ -36,6 +35,18 @@ body {
 .input-error:focus {
   border-color: #DC2626 !important;
   box-shadow: 0 0 0 1px #DC2626 !important;
+}
+
+/* ── Textarea base (auto-expanding) ── */
+textarea.input-base {
+  min-height: 100px;
+  resize: vertical;
+  overflow: hidden;
+}
+
+textarea.input-base:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 1px #16A34A;
 }
 
 /* ── Card ── */
@@ -153,6 +164,45 @@ body {
   background-color: #FEF2F2;
   color: #DC2626;
   font-weight: 500;
+}
+
+/* ── Mobile optimizations ── */
+@media (max-width: 640px) {
+  body {
+    font-size: 14px;
+  }
+
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.1rem; }
+
+  .card {
+    padding: 1rem;
+    border-radius: 0.5rem;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .input-base {
+    font-size: 16px;
+  }
+
+  textarea.input-base {
+    min-height: 80px;
+  }
+}
+
+/* ── Auto-expanding textarea helper ── */
+.textarea-auto-expand {
+  resize: none;
+  overflow: hidden;
+  line-height: 1.5;
 }
 
 /* ── Print ── */

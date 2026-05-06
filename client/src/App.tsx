@@ -7,6 +7,21 @@ import Activities from './pages/Activities';
 import EventMapping from './pages/EventMapping';
 import UrgeAssessment from './pages/UrgeAssessment';
 import Summary from './pages/Summary';
+import Tools from './pages/Tools';
+import TwentyReasons from './pages/TwentyReasons';
+import BlackPictures from './pages/BlackPictures';
+import DailyPlanner from './pages/DailyPlanner';
+import DailyPlannerView from './pages/DailyPlannerView';
+import SafetyMap from './pages/SafetyMap';
+import SafetyMapView from './pages/SafetyMapView';
+import PersonalTriangle from './pages/PersonalTriangle';
+import PersonalTriangleIntro from './pages/PersonalTriangleIntro';
+import AbusserThoughtJournal from './pages/AbusserThoughtJournal';
+import PersonalTriangleView from './pages/PersonalTriangleView';
+import ProgramPrinciples from './pages/ProgramPrinciples';
+import PersonalityProblems from './pages/PersonalityProblems';
+import DecisionMatrix from './pages/DecisionMatrix';
+import DecisionMatrixView from './pages/DecisionMatrixView';
 import FacilitatorLogin from './pages/FacilitatorLogin';
 import Dashboard from './pages/Dashboard';
 import PatientDetail from './pages/PatientDetail';
@@ -50,6 +65,51 @@ export default function App() {
         } />
         <Route path="/summary" element={
           <PatientGuard><Summary /></PatientGuard>
+        } />
+        <Route path="/tools" element={
+          <PatientGuard><Tools /></PatientGuard>
+        } />
+        <Route path="/tools/twenty-reasons" element={
+          <PatientGuard><TwentyReasons /></PatientGuard>
+        } />
+        <Route path="/tools/black-pictures" element={
+          <PatientGuard><BlackPictures /></PatientGuard>
+        } />
+        <Route path="/tools/daily-planner" element={
+          <PatientGuard><DailyPlanner /></PatientGuard>
+        } />
+        <Route path="/tools/daily-planner/view" element={
+          <PatientGuard><DailyPlannerView /></PatientGuard>
+        } />
+        <Route path="/tools/safety-map" element={
+          <PatientGuard><SafetyMap /></PatientGuard>
+        } />
+        <Route path="/tools/safety-map/view" element={
+          <PatientGuard><SafetyMapView /></PatientGuard>
+        } />
+        <Route path="/tools/personal-triangle/intro" element={
+          <PatientGuard><PersonalTriangleIntro /></PatientGuard>
+        } />
+        <Route path="/tools/personal-triangle" element={
+          <PatientGuard><PersonalTriangle /></PatientGuard>
+        } />
+        <Route path="/tools/personal-triangle/journal" element={
+          <PatientGuard><AbusserThoughtJournal /></PatientGuard>
+        } />
+        <Route path="/tools/personal-triangle/view" element={
+          <PatientGuard><PersonalTriangleView /></PatientGuard>
+        } />
+        <Route path="/tools/principles" element={
+          <PatientGuard><ProgramPrinciples /></PatientGuard>
+        } />
+        <Route path="/tools/personality-problems" element={
+          <PatientGuard><PersonalityProblems /></PatientGuard>
+        } />
+        <Route path="/tools/decision-matrix" element={
+          <PatientGuard><DecisionMatrix /></PatientGuard>
+        } />
+        <Route path="/tools/decision-matrix/view" element={
+          <PatientGuard><DecisionMatrixView /></PatientGuard>
         } />
 
         {/* Facilitator protected */}
