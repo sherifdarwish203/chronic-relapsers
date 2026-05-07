@@ -9,7 +9,7 @@ export default function Landing() {
         {/* Logo + title */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <svg width="56" height="56" sm:width="64" sm:height="64" viewBox="0 0 64 64" fill="none">
+            <svg className="w-14 h-14 sm:w-16 sm:h-16" viewBox="0 0 64 64" fill="none">
               <circle cx="32" cy="32" r="32" fill="#DCFCE7" />
               <path
                 d="M32 14C23 14 16 24 16 32C16 40 23 46 32 50C41 46 48 40 48 32C48 24 41 14 32 14Z"
