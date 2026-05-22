@@ -5,7 +5,7 @@ import { CONTROLLED_OPTIONS } from '../constants/presets';
 
 interface PeriodCardProps {
   period: Period;
-  onDelete: (id: number) => void;
+  onDelete?: (id: number) => void;
 }
 
 const TYPE_CONFIG = {
@@ -104,15 +104,17 @@ export default function PeriodCard({ period, onDelete }: PeriodCardProps) {
       {/* Action buttons */}
       <div className="flex gap-2 flex-row-reverse">
         <button
-          onClick={() => onDelete(period.id)}
-          className="btn-danger text-xs"
+          onClick={() => onDelete?.(period.id)}
+          disabled={!onDelete}
+          className="btn-danger text-xs disabled:opacity-50 disabled:cursor-not-allowed"
         >
           حذف
         </button>
         {period.type === 'relapse' && (
           <button
             onClick={() => navigate(`/timeline/events/${period.id}`)}
-            className="btn-secondary text-xs"
+            disabled={!onDelete}
+            className="btn-secondary text-xs disabled:opacity-50 disabled:cursor-not-allowed"
           >
             أحداث
           </button>
@@ -120,7 +122,8 @@ export default function PeriodCard({ period, onDelete }: PeriodCardProps) {
         {period.type === 'reduced' && (
           <button
             onClick={() => navigate(`/timeline/urge/${period.id}`)}
-            className="btn-secondary text-xs"
+            disabled={!onDelete}
+            className="btn-secondary text-xs disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {period.urge_data ? 'تعديل التقييم' : 'تقييم الرغبة'}
           </button>

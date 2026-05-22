@@ -240,3 +240,76 @@ ALTER TABLE periods  ADD COLUMN IF NOT EXISTS substances   TEXT[] DEFAULT '{}';
 ALTER TABLE periods  ADD COLUMN IF NOT EXISTS urge_data    JSONB DEFAULT NULL;
 ALTER TABLE periods  ADD COLUMN IF NOT EXISTS sort_order   INTEGER;
 ALTER TABLE periods  ADD COLUMN IF NOT EXISTS start_day    SMALLINT CHECK (start_day BETWEEN 1 AND 31);
+
+-- ============================================================================
+-- MULTI-TENANT SAAS LICENSING SYSTEM
+-- ============================================================================
+
+-- Phase 1A: Multi-Tenant Architecture with Dual-Path Monetization
+-- Table: Licensing Tokens (admin-managed, therapist-specific seats)
+CREATE TABLE IF NOT EXISTS licensing_tokens (
+  id                      SERIAL PRIMARY KEY,
+  token_code              VARCHAR(50) UNIQUE NOT NULL, -- e.g., "TOK_5SEATS_2024"
+  seat_count              SMALLINT NOT NULL CHECK (seat_count > 0), -- total seats available
+  seats_used              SMALLINT DEFAULT 0, -- how many seats have been allocated
+  assigned_facilitator_id INTEGER REFERENCES facilitators(id) ON DELETE SET NULL,
+  is_active               BOOLEAN DEFAULT TRUE,
+  created_at              TIMESTAMP DEFAULT NOW(),
+  assigned_at             TIMESTAMP,
+  notes                   TEXT -- admin notes about who/why this token was created
+);
+
+CREATE INDEX IF NOT EXISTS idx_licensing_tokens_facilitator ON licensing_tokens(assigned_facilitator_id);
+CREATE INDEX IF NOT EXISTS idx_licensing_tokens_active ON licensing_tokens(is_active);
+
+-- Table: Patient Invitations (therapist-generated freemium invitation links)
+CREATE TABLE IF NOT EXISTS patient_invitations (
+  id                      SERIAL PRIMARY KEY,
+  token_code              VARCHAR(32) UNIQUE NOT NULL, -- short UUID for URL: /register?token=XXX
+  facilitator_id          INTEGER REFERENCES facilitators(id) ON DELETE CASCADE, -- can be NULL for standalone freemium links
+  email                   VARCHAR(255), -- optional: therapist can pre-fill patient email
+  phone_number            VARCHAR(20),
+  display_name            VARCHAR(100),
+  used_at                 TIMESTAMP, -- when patient actually registered
+  patient_id              INTEGER REFERENCES patients(id) ON DELETE SET NULL, -- patient created from this invite
+  cancelled_at            TIMESTAMP, -- if therapist revoked the link
+  created_at              TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_patient_invitations_facilitator ON patient_invitations(facilitator_id);
+CREATE INDEX IF NOT EXISTS idx_patient_invitations_token ON patient_invitations(token_code);
+CREATE INDEX IF NOT EXISTS idx_patient_invitations_patient ON patient_invitations(patient_id);
+
+-- ALTER EXISTING TABLE: Add multi-tenant + trial tracking columns to patients
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS facilitator_id INTEGER REFERENCES facilitators(id) ON DELETE CASCADE;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS registration_type VARCHAR(20) CHECK (registration_type IN ('code','freemium','therapist_managed'));
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS trial_start_at TIMESTAMP;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS trial_expires_at TIMESTAMP;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS payment_status VARCHAR(30) DEFAULT 'trial_active' CHECK (payment_status IN ('trial_active','trial_expired_unpaid','paid','therapist_linked'));
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS payment_approved_at TIMESTAMP;
+ALTER TABLE patients ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255); -- for therapist-managed accounts only
+
+CREATE INDEX IF NOT EXISTS idx_patients_facilitator ON patients(facilitator_id);
+CREATE INDEX IF NOT EXISTS idx_patients_payment_status ON patients(payment_status);
+CREATE INDEX IF NOT EXISTS idx_patients_trial_expires ON patients(trial_expires_at);
+CREATE INDEX IF NOT EXISTS idx_patients_registration_type ON patients(registration_type);
+
+-- BACKWARD COMPATIBILITY NOTES:
+-- Existing patients (created before this update) have:
+--   registration_type = 'code'
+--   facilitator_id = NULL
+--   payment_status = 'trial_active' (no read-only enforcement; they are grandfathered)
+--   trial_start_at = NULL (no trial expiration)
+--
+-- New freemium patients have:
+--   registration_type = 'freemium'
+--   facilitator_id = NULL (or therapist_id if created via therapist's freemium invite)
+--   payment_status = 'trial_active'
+--   trial_start_at = NOW()
+--   trial_expires_at = NOW() + 14 days
+--
+-- New therapist-managed patients have:
+--   registration_type = 'therapist_managed'
+--   facilitator_id = therapist_id (NON-NULL, required)
+--   payment_status = 'therapist_linked'
+--   trial_start_at = NULL (no trial; immediate full access)

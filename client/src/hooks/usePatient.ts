@@ -191,6 +191,9 @@ export interface Patient {
   substances: string[];
   created_at: string;
   updated_at: string;
+  registration_type?: 'code' | 'freemium' | 'therapist_managed';
+  payment_status?: 'trial_active' | 'trial_expired_unpaid' | 'paid' | 'therapist_linked';
+  trial_expires_at?: string;
 }
 
 export function usePatient() {

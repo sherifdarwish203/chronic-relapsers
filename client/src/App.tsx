@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import PatientStart from './pages/PatientStart';
+import PatientRegister from './pages/PatientRegister';
 import PatientHome from './pages/PatientHome';
 import Timeline from './pages/Timeline';
 import Activities from './pages/Activities';
@@ -25,6 +26,9 @@ import DecisionMatrixView from './pages/DecisionMatrixView';
 import FacilitatorLogin from './pages/FacilitatorLogin';
 import Dashboard from './pages/Dashboard';
 import PatientDetail from './pages/PatientDetail';
+import InvitePatient from './pages/InvitePatient';
+import ManageInvitations from './pages/ManageInvitations';
+import PatientList from './pages/PatientList';
 
 function PatientGuard({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('patient_token');
@@ -45,6 +49,7 @@ export default function App() {
         {/* Public */}
         <Route path="/" element={<Landing />} />
         <Route path="/start" element={<PatientStart />} />
+        <Route path="/register" element={<PatientRegister />} />
         <Route path="/dashboard/login" element={<FacilitatorLogin />} />
 
         {/* Patient protected */}
@@ -118,6 +123,15 @@ export default function App() {
         } />
         <Route path="/dashboard/patients/:id" element={
           <FacilitatorGuard><PatientDetail /></FacilitatorGuard>
+        } />
+        <Route path="/dashboard/invite-patient" element={
+          <FacilitatorGuard><InvitePatient /></FacilitatorGuard>
+        } />
+        <Route path="/dashboard/manage-invitations" element={
+          <FacilitatorGuard><ManageInvitations /></FacilitatorGuard>
+        } />
+        <Route path="/dashboard/patients-list" element={
+          <FacilitatorGuard><PatientList /></FacilitatorGuard>
         } />
 
         {/* Fallback */}

@@ -4,6 +4,7 @@ import api from '../api/client';
 import { useFacilitatorAuth } from '../hooks/useAuth';
 import AggregateChart from '../components/AggregateChart';
 import { SUBSTANCES } from '../constants/presets';
+import Toast from '../components/Toast';
 
 interface PatientRow {
   id: number; code: string; display_name: string; substances: string[];
@@ -33,6 +34,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [sortKey, setSortKey] = useState<SortKey>('last_updated');
   const [facilitator, setFacilitator] = useState<{ full_name?: string } | null>(null);
+  const [seatUsage, setSeatUsage] = useState<{ total: number; used: number; available: number; percentage: number } | null>(null);
+  const [toast, setToastState] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // New patient form
   const [showNewForm, setShowNewForm] = useState(false);
@@ -58,12 +61,14 @@ export default function Dashboard() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [pRes, aRes] = await Promise.all([
+      const [pRes, aRes, sRes] = await Promise.all([
         api.get('/facilitators/patients'),
         api.get('/facilitators/aggregate'),
+        api.get('/facilitators/seat-usage'),
       ]);
       setPatients(pRes.data.patients);
       setAggregate(aRes.data);
+      setSeatUsage(sRes.data.seat_usage);
     } catch {
       // redirected by interceptor on 401
     } finally {
@@ -181,24 +186,35 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4" dir="ltr" style={{ fontFamily: 'system-ui, sans-serif' }}>
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onDismiss={() => setToastState(null)} />
+      )}
       <div className="max-w-[900px] mx-auto">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-semibold text-gray-800">Recovery Dashboard</h1>
+          <div>
+            <h1 className="text-xl font-semibold text-gray-800">Recovery Dashboard</h1>
+            <p className="text-sm text-gray-600 mt-1">{facilitator?.full_name || 'Facilitator'}</p>
+          </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">{facilitator?.full_name || 'Facilitator'}</span>
+            {seatUsage && (
+              <div className="bg-white border border-blue-300 rounded-lg px-4 py-2">
+                <p className="text-xs text-gray-600">Available Seats</p>
+                <p className="text-lg font-bold text-blue-700">{seatUsage.available} / {seatUsage.total}</p>
+              </div>
+            )}
             <button
-              onClick={() => { setShowNewForm((v) => !v); setNewCode(null); }}
+              onClick={() => navigate('/dashboard/invite-patient')}
               className="text-sm text-white bg-green-700 hover:bg-green-800 rounded px-3 py-1"
             >
-              + New Patient
+              + Add Patient
             </button>
             <button
-              onClick={() => { setShowFacilitatorForm((v) => !v); setFacilitatorFormError(''); setFacilitatorCreated(null); }}
+              onClick={() => navigate('/dashboard/manage-invitations')}
               className="text-sm text-white bg-blue-700 hover:bg-blue-800 rounded px-3 py-1"
             >
-              + New Doctor
+              Manage Links
             </button>
             <button onClick={fetchData} className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded px-2 py-1">
               Refresh
@@ -382,7 +398,15 @@ export default function Dashboard() {
             {/* Patient list */}
             <div className="bg-white border border-gray-200 rounded-xl p-4">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="font-semibold text-gray-700">Patients ({patients.length})</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="font-semibold text-gray-700">Patients ({patients.length})</h2>
+                  <button
+                    onClick={() => navigate('/dashboard/patients-list')}
+                    className="text-xs text-blue-700 hover:text-blue-800 border border-blue-200 rounded px-2 py-0.5"
+                  >
+                    View List
+                  </button>
+                </div>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
                   Sort:
                   {(['code', 'relapse_count', 'event_count', 'last_updated'] as SortKey[]).map((k) => (

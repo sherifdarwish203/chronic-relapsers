@@ -8,6 +8,7 @@ import Toast from '../components/Toast';
 import { ARABIC_MONTHS, SUBSTANCES } from '../constants/presets';
 import TriggerTags from '../components/TriggerTags';
 import { validateDates, getYearOptions } from '../utils/dates';
+import { isReadOnlyMode } from '../utils/accessControl';
 
 interface ToastState { message: string; type: 'success' | 'error' }
 
@@ -169,20 +170,50 @@ export default function Timeline() {
         ) : (
           <div className="space-y-3 mb-4">
             {periods.map((period) => (
-              <PeriodCard key={period.id} period={period} onDelete={handleDelete} />
+              <PeriodCard key={period.id} period={period} onDelete={patient && isReadOnlyMode(patient) ? undefined : handleDelete} />
             ))}
           </div>
         )}
 
+        {/* Read-only mode banner */}
+        {patient && isReadOnlyMode(patient) && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg mb-4">
+            <h3 className="font-bold text-red-900 text-sm mb-2">قدم الوصول انتهى 🔒</h3>
+            <p className="text-sm text-red-800 mb-3">
+              انتهت فترة التجريبي. لإضافة أو تعديل البيانات، يرجى الترقية أو الارتباط بمعالج.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setToast({ message: 'جاري تحويلك إلى طلب الدفع...', type: 'success' });
+                  // TODO: Redirect to payment request
+                }}
+                className="text-sm bg-green-600 hover:bg-green-700 text-white rounded px-3 py-1"
+              >
+                طلب الدفع
+              </button>
+              <button
+                onClick={() => {
+                  setToast({ message: 'جاري تحويلك إلى ارتباط المعالج...', type: 'success' });
+                  // TODO: Redirect to link therapist
+                }}
+                className="text-sm bg-blue-600 hover:bg-blue-700 text-white rounded px-3 py-1"
+              >
+                ارتبط بمعالج
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Add period button / form */}
-        {!showForm ? (
+        {patient && !isReadOnlyMode(patient) && !showForm ? (
           <button
             onClick={() => setShowForm(true)}
             className="w-full border-2 border-dashed border-gray-300 rounded-xl py-4 text-sm text-gray-500 hover:border-primary hover:text-primary transition"
           >
             + إضافة فترة
           </button>
-        ) : (
+        ) : patient && !isReadOnlyMode(patient) && showForm ? (
           <div className="bg-white rounded-lg shadow-sm p-4 space-y-4 mb-4">
             <h3 className="font-semibold text-base sm:text-lg text-gray-800">إضافة فترة جديدة</h3>
 
@@ -348,7 +379,7 @@ export default function Timeline() {
               </button>
             </div>
           </div>
-        )}
+        ) : null}
 
         {/* Bottom navigation */}
         <div className="mt-6 space-y-3 pb-6">

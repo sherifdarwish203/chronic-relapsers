@@ -12,6 +12,8 @@ import eventsDirectRoutes from './routes/eventsDirect';
 import facilitatorRoutes from './routes/facilitators';
 import activityRoutes from './routes/activities';
 import toolRoutes from './routes/tools';
+import adminRoutes from './routes/admin';
+import invitationRoutes from './routes/invitations';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,12 +39,15 @@ const loginLimiter = rateLimit({
 // Routes
 app.use('/api/v1/patients/login', loginLimiter);
 app.use('/api/v1/patients', patientRoutes);
+app.use('/api/v1/auth', patientRoutes);           // Registration endpoints (POST /auth/register, GET /auth/invitations/:token)
 app.use('/api/v1/periods', periodRoutes);
-app.use('/api/v1/periods', eventRoutes);       // POST /periods/:period_id/events
-app.use('/api/v1/events', eventsDirectRoutes); // DELETE /events/:id
+app.use('/api/v1/periods', eventRoutes);         // POST /periods/:period_id/events
+app.use('/api/v1/events', eventsDirectRoutes);   // DELETE /events/:id
 app.use('/api/v1/facilitators', facilitatorRoutes);
+app.use('/api/v1/facilitators', invitationRoutes); // Invitation endpoints (POST, GET, PATCH /invitations)
 app.use('/api/v1/activities', activityRoutes);
 app.use('/api/v1/tools', toolRoutes);
+app.use('/api/v1/admin', adminRoutes);           // Admin endpoints (POST /tokens, GET /tokens, etc.)
 
 // Health check
 app.get('/health', (_req, res) => {
